@@ -1,2 +1,41 @@
 # kekkai
-personal feedspace
+
+A personal feedspace for deadlines, tasks, and discoveries. React 19 + Vite + ui-sdk, with a restrained shadcn-inspired visual style.
+
+```sh
+npm install
+npm run dev
+```
+
+Open the Local URL printed by Vite. Node 22.18 or newer is required.
+
+```sh
+npm test
+npm run lint
+npm run build
+npm start
+```
+
+`npm start` serves the production build and feed endpoint at `http://127.0.0.1:4173`. `npm run preview` also includes the feed endpoint. The feed needs a running server; uploading `dist/` alone to static hosting cannot provide live Trending data. `HOST` and `PORT` override the production listener.
+
+## Your workspace
+
+Select a date and use **Deadline** to add a commitment. Open an item to edit or delete it; deletion offers Undo. Capture tasks directly in the list, or use **New task** for dates and notes. The calendar's daily agenda includes both deadlines and dated tasks. GitHub repositories can be bookmarked into **Saved**.
+
+Planning data and saved entries live in this browser's local storage, with no account or synchronization. **Backups & storage** exports JSON and restores backups by merging missing records; existing local edits win. If stored data is unreadable, the original is retained as a recovery copy before any replacement. Storage failures leave changes in memory and show an export warning. Use one tab for editing: concurrent tabs use the last saved workspace. No notifications or time-of-day reminders are included.
+
+## Feed providers
+
+The server fetches the actual [GitHub Trending page](https://github.com/trending), parses its repository cards, and caches each period for 15 minutes. Concurrent requests share one fetch. On upstream failure it can serve the last successful result for up to 24 hours, explicitly marked stale. With no usable result, the interface offers retry and a source link. The cache is in memory and resets when the server restarts. GitHub's HTML is an integration boundary: markup changes may require updating `parseTrending` in `server/feeds.ts`.
+
+To add a source:
+
+1. Add a provider in `server/feeds.ts` returning normalized `FeedEntry` records. IDs must be stable and source-prefixed; links must use HTTPS. Language and star metrics are optional.
+2. Add its display metadata to `src/feeds.ts` and render `FeedPanel` with that source. Set `periods: []` for a source without period controls; its provider can ignore the default daily period.
+3. Test its parser against a small representative HTML/JSON fixture. The shared cache, failures, saved-entry handling, and card layout remain reusable.
+
+External content is rendered as text; source HTML never enters the page. Feed URLs are fixed in provider code, so users cannot turn the endpoint into an arbitrary URL proxy.
+
+If GitHub is unreachable from the Node process, the feed shows retry and the original source link. A browser's proxy/VPN configuration may differ from the server's network configuration.
+
+See [the first-version plan](docs/plan.md) and [review and verification](docs/review.md).
