@@ -77,21 +77,26 @@ test('adds a deadline for the selected day, edits it, and deletes with undo', as
   render(<App />)
   const user = userEvent.setup()
   await user.click(screen.getByRole('button', { name: 'Add deadline' }))
-  const dialog = screen.getByRole('dialog', { name: 'New deadline' })
-  await user.type(within(dialog).getByLabelText('Title'), 'Ship the proposal')
+  const dialog = screen.getByRole('dialog', { name: /^Agenda for/ })
+  await user.type(
+    within(dialog).getByLabelText('Deadline name'),
+    'Ship the proposal',
+  )
   expect(
     (within(dialog).getByLabelText('Deadline date') as HTMLInputElement).value,
   ).toBe(localDate())
   await user.click(within(dialog).getByRole('button', { name: 'Add deadline' }))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull(),
+  )
   expect(screen.getByRole('gridcell', { name: /1 deadline/ })).toBeTruthy()
   await user.click(
     screen.getByRole('button', { name: 'Edit deadline Ship the proposal' }),
   )
-  const edit = screen.getByRole('dialog', { name: 'Edit deadline' })
-  await user.clear(within(edit).getByLabelText('Title'))
+  const edit = screen.getByRole('dialog', { name: /^Agenda for/ })
+  await user.clear(within(edit).getByLabelText('Deadline name'))
   await user.type(
-    within(edit).getByLabelText('Title'),
+    within(edit).getByLabelText('Deadline name'),
     'Ship the revised proposal',
   )
   await user.click(within(edit).getByRole('button', { name: 'Save changes' }))
@@ -107,6 +112,7 @@ test('adds a deadline for the selected day, edits it, and deletes with undo', as
     }),
   ).toBeNull()
   await user.click(screen.getByRole('button', { name: 'Undo' }))
+  await user.click(screen.getByRole('gridcell', { name: /1 deadline/ }))
   expect(
     screen.getByRole('checkbox', {
       name: 'Complete deadline Ship the revised proposal',
@@ -120,7 +126,8 @@ test('validates an empty title, cancels, and closes with Escape without creating
   await user.click(screen.getByRole('button', { name: 'New task' }))
   await user.click(screen.getByRole('button', { name: 'Add task' }))
   expect(
-    (screen.getByLabelText('Title') as HTMLInputElement).validity.valueMissing,
+    (screen.getByLabelText('Task name') as HTMLInputElement).validity
+      .valueMissing,
   ).toBe(true)
   await user.click(screen.getByRole('button', { name: 'Cancel' }))
   expect(screen.queryByRole('dialog')).toBeNull()
@@ -267,11 +274,16 @@ test('ui-sdk agent can name controls, create a task, and change calendar selecti
     })
     expect(result.ok, result.error?.message).toBe(true)
   })
-  expect(screen.getByRole('heading', { name: 'Thursday Dec 3' })).toBeTruthy()
+  expect(
+    screen.getByRole('dialog', { name: 'Agenda for Thursday, December 3' }),
+  ).toBeTruthy()
+  await userEvent.setup().keyboard('{Escape}')
   const day = screen.getByRole('gridcell', { selected: true })
   day.focus()
   await userEvent.setup().keyboard('{ArrowRight}{Enter}')
-  expect(screen.getByRole('heading', { name: 'Friday Dec 4' })).toBeTruthy()
+  expect(
+    screen.getByRole('dialog', { name: 'Agenda for Friday, December 4' }),
+  ).toBeTruthy()
 })
 
 test('Undo after restore preserves the restored record and remains reloadable', async () => {
@@ -358,4 +370,248 @@ test('an agent cannot persist a task title beyond the backup schema limit', asyn
   ).toBe(true)
   await userEvent.setup().keyboard('{Enter}')
   expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+})
+
+test('a date opens its attachment and the editor covers it without losing a draft', async () => {
+  render(<App />)
+  const user = userEvent.setup()
+  const day = screen.getByRole('gridcell', { selected: true })
+  await user.click(day)
+  let attachment = screen.getByRole('dialog', { name: /^Agenda for/ })
+  expect(
+    within(attachment).getByText('No deadlines or dated tasks for this day.'),
+  ).toBeTruthy()
+  await user.click(
+    within(attachment).getByRole('button', { name: 'Add deadline' }),
+  )
+  const title = within(attachment).getByRole('textbox', {
+    name: 'Deadline name',
+  })
+  await waitFor(() => expect(document.activeElement === title).toBe(true))
+  expect(
+    within(attachment).queryByRole('button', { name: 'Close day agenda' }),
+  ).toBeNull()
+  await user.type(title, 'Keep this deadline draft')
+  await user.keyboard('{Escape}')
+  expect(
+    (screen.getByRole('textbox', { name: 'Deadline name' }) as HTMLInputElement)
+      .value,
+  ).toBe('Keep this deadline draft')
+  expect(
+    screen.getByText('Save or cancel your draft before closing.'),
+  ).toBeTruthy()
+  await user.click(within(attachment).getByRole('button', { name: 'Cancel' }))
+  const add = within(attachment).getByRole('button', { name: 'Add deadline' })
+  await waitFor(() => expect(document.activeElement === add).toBe(true))
+  expect(
+    within(attachment).queryByRole('textbox', { name: 'Deadline name' }),
+  ).toBeNull()
+  await user.keyboard('{Escape}')
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(document.activeElement === day).toBe(true))
+  await user.click(day)
+  attachment = screen.getByRole('dialog', { name: /^Agenda for/ })
+  await user.click(
+    within(attachment).getByRole('button', { name: 'Add deadline' }),
+  )
+  expect(
+    (
+      within(attachment).getByRole('textbox', {
+        name: 'Deadline name',
+      }) as HTMLInputElement
+    ).value,
+  ).toBe('')
+})
+
+test('adding from another view opens the calendar form once', async () => {
+  render(<App />)
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: 'To-do list' }))
+  await user.click(screen.getByRole('button', { name: 'Add deadline' }))
+  const attachment = screen.getByRole('dialog', { name: /^Agenda for/ })
+  await user.type(
+    within(attachment).getByRole('textbox', { name: 'Deadline name' }),
+    'A deadline from the tasks view',
+  )
+  await user.click(
+    within(attachment).getByRole('button', { name: 'Add deadline' }),
+  )
+  await user.keyboard('{Escape}')
+  await user.click(screen.getByRole('button', { name: 'To-do list' }))
+  await user.click(screen.getByRole('button', { name: 'Calendar' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('gridcell', { name: /1 deadline/ })).toBeTruthy()
+})
+
+test('a deadline moved to another month stays on the chosen local date', async () => {
+  render(<App />)
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: 'Add deadline' }))
+  const attachment = screen.getByRole('dialog', { name: /^Agenda for/ })
+  await user.type(
+    within(attachment).getByRole('textbox', { name: 'Deadline name' }),
+    'A January commitment',
+  )
+  await user.clear(within(attachment).getByLabelText('Deadline date'))
+  await user.type(
+    within(attachment).getByLabelText('Deadline date'),
+    '2027-01-02',
+  )
+  await user.click(
+    within(attachment).getByRole('button', { name: 'Add deadline' }),
+  )
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByRole('heading', { name: 'January 2027' })).toBeTruthy()
+  expect(
+    screen.getByRole('gridcell', { selected: true }).getAttribute('data-value'),
+  ).toBe('2027-01-02')
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).items[0]).toMatchObject(
+    { date: '2027-01-02', title: 'A January commitment' },
+  )
+})
+
+test('an agent can discover the attached agenda and the deadline form controls', async () => {
+  render(<App />)
+  await screen.findByRole('button', { name: 'Save acme/atlas' })
+  await act(async () => {
+    expect(
+      (
+        await agent.act({
+          steps: [
+            {
+              ref: 'Deadline calendar',
+              action: 'setValue',
+              args: ['2026-11-24'],
+            },
+          ],
+        })
+      ).ok,
+    ).toBe(true)
+  })
+  const agenda = agent
+    .snapshot()
+    .find(
+      (entry) =>
+        !entry.offPage &&
+        entry.component === 'popover' &&
+        entry.label === 'Agenda for Tuesday, November 24',
+    )
+  expect(agenda).toBeTruthy()
+  const actions = await agent.query({
+    text: 'Add deadline',
+    within: agenda!.ref,
+  })
+  if (!Array.isArray(actions)) throw new Error(actions.error)
+  expect(actions).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        ref: agenda!.ref,
+        buttons: expect.arrayContaining(['Add deadline']),
+      }),
+    ]),
+  )
+  await act(async () => {
+    expect(
+      (
+        await agent.act({
+          steps: [
+            { ref: agenda!.ref, action: 'press', args: ['Add deadline'] },
+          ],
+        })
+      ).ok,
+    ).toBe(true)
+  })
+  const controls = agent
+    .snapshot()
+    .filter((entry) => !entry.offPage && entry.component !== 'more')
+  for (const entry of controls)
+    expect(
+      entry.label,
+      `${entry.component} has no accessible name`,
+    ).toBeTruthy()
+  for (const label of [
+    'Deadline name',
+    'Deadline date',
+    'Notes (optional)',
+    'Back to day agenda',
+  ])
+    expect(controls.map((entry) => entry.label)).toContain(label)
+  await act(async () => {
+    const result = await agent.act({
+      steps: [
+        {
+          ref: 'Deadline name',
+          action: 'setValue',
+          args: ['An agent-created deadline'],
+        },
+      ],
+    })
+    expect(result.ok, result.error?.message).toBe(true)
+  })
+  const submitters = await agent.query({
+    text: 'Add deadline',
+    within: agenda!.ref,
+  })
+  if (!Array.isArray(submitters)) throw new Error(submitters.error)
+  expect(submitters).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        ref: agenda!.ref,
+        buttons: expect.arrayContaining(['Add deadline']),
+      }),
+    ]),
+  )
+  await act(async () => {
+    expect(
+      (
+        await agent.act({
+          steps: [
+            { ref: agenda!.ref, action: 'press', args: ['Add deadline'] },
+          ],
+        })
+      ).ok,
+    ).toBe(true)
+  })
+  expect(
+    screen.getByRole('checkbox', {
+      name: 'Complete deadline An agent-created deadline',
+    }),
+  ).toBeTruthy()
+})
+
+test('a dated task opens its existing editor after the day attachment closes', async () => {
+  const date = localDate()
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      ...emptyWorkspace,
+      items: [
+        {
+          id: 'dated-task',
+          kind: 'task',
+          title: 'Prepare for the review',
+          date,
+          done: false,
+          notes: '',
+        },
+      ],
+    }),
+  )
+  render(<App />)
+  const user = userEvent.setup()
+  const day = screen.getByRole('gridcell', { selected: true })
+  await user.click(day)
+  await user.click(
+    screen.getByRole('button', { name: 'Edit task Prepare for the review' }),
+  )
+  const dialog = await screen.findByRole('dialog', { name: 'Edit task' })
+  expect(
+    (
+      within(dialog).getByRole('textbox', {
+        name: 'Task name',
+      }) as HTMLInputElement
+    ).value,
+  ).toBe('Prepare for the review')
+  await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+  await waitFor(() => expect(document.activeElement === day).toBe(true))
 })

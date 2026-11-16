@@ -1,7 +1,7 @@
 @layer ui-sdk;
 
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Geist Variable', 'Geist', sans-serif;
   color: #27272a;
   background: #fafafa;
   font-synthesis: none;
@@ -15,15 +15,15 @@
   --ui-muted-foreground: #71717a;
   --ui-primary: #18181b;
   --ui-primary-foreground: #ffffff;
-  --ui-ring: #6d4aff;
-  --ui-ring-border: #6d4aff;
+  --ui-ring: #52525b;
+  --ui-ring-border: #52525b;
   --ui-border: #e4e4e7;
   --ui-input: #a1a1aa;
   --ui-radius: 6px;
-  --ui-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ui-font-size: 13px;
+  --ui-font-sans: 'Geist Variable', 'Geist', sans-serif;
+  --ui-font-size: 15px;
   --ui-spacing: 4px;
-  font-size: 14px;
+  font-size: 16px;
 }
 * {
   box-sizing: border-box;
@@ -68,11 +68,11 @@ textarea,
   outline-offset: 4px;
 }
 :focus-visible {
-  outline: 2px solid #6d4aff;
+  outline: 2px solid #52525b;
 }
 ::selection {
-  background: #e9e2ff;
-  color: #3e2596;
+  background: #e4e4e7;
+  color: #18181b;
 }
 svg {
   flex-shrink: 0;

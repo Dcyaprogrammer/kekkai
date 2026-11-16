@@ -17,7 +17,10 @@ import {
   X,
 } from 'lucide-react'
 import { BackupDialog } from './components/backup-dialog'
-import { CalendarPanel } from './components/calendar-panel'
+import {
+  CalendarPanel,
+  type CalendarRequest,
+} from './components/calendar-panel'
 import { FeedPanel } from './components/feed-panel'
 import { ItemDialog } from './components/item-dialog'
 import { TasksPanel } from './components/tasks-panel'
@@ -46,6 +49,8 @@ export default function App() {
   const [view, setView] = useState<View>('overview')
   const [selected, setSelected] = useState(localDate)
   const [month, setMonth] = useState(() => localDate().slice(0, 7))
+  const [calendarRequest, setCalendarRequest] =
+    useState<CalendarRequest | null>(null)
   const dialogTrigger = useRef<HTMLElement | null>(null)
   const [editor, setEditor] = useState<
     (Partial<PlanningItem> & { kind: PlanningItem['kind'] }) | null
@@ -142,7 +147,9 @@ export default function App() {
     restoreDialogFocus()
   }
   function newDeadline(date: string) {
-    openEditor({ kind: 'deadline', date })
+    selectDate(date)
+    if (view !== 'overview' && view !== 'calendar') setView('calendar')
+    setCalendarRequest((previous) => ({ date, id: (previous?.id ?? 0) + 1 }))
   }
   function newTask() {
     openEditor({ kind: 'task' })
@@ -159,8 +166,11 @@ export default function App() {
       month={month}
       onMonthChange={setMonth}
       onSelect={selectDate}
-      onAdd={newDeadline}
-      onEdit={openEditor}
+      onSave={saveItem}
+      onDelete={deleteItem}
+      onEditTask={openEditor}
+      request={calendarRequest}
+      onRequestHandled={() => setCalendarRequest(null)}
       onToggle={toggleItem}
     />
   )

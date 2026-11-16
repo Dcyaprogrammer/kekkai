@@ -22,3 +22,14 @@ Final findings: Standards 0; Spec 0. No outstanding issue in either axis.
 - Live GitHub Trending was successfully parsed and served with 15 actual repositories. Subsequent fresh requests intermittently failed with `UND_ERR_CONNECT_TIMEOUT` in both development and production. Loading/failure states, retry, and the source link were observed. Cache and stale-result behavior are tested with controlled upstream responses.
 
 Not checked: other browsers, an exhaustive contrast audit across every state, or hosted deployment. Data is browser-local; concurrent editing tabs use the last saved workspace. GitHub HTML changes may require parser maintenance, and live content requires the Node server to reach GitHub.
+
+## Typography and calendar refresh
+
+Reviewed the staged changes against `1388477`, using [ui-refresh.md](./ui-refresh.md) as the spec. The standards review found a short-viewport clipping issue; removing the attachment view's minimum height and respecting available popup height resolved it. The spec review found a rescheduling documentation mismatch, which is corrected. Both follow-up reviews found no remaining blockers.
+
+- `npm test`: exit 0; 36 tests across five files, including attached-agenda selection, draft preservation, focus restoration, rescheduling, task-dialog handoff, and agent access.
+- `npm run build`: exit 0, including TypeScript checks and locally bundled Geist font assets.
+- `npm run lint`: exit 0.
+- Native Chrome confirmed desktop typography/layout, date selection, the attached agenda, and the form transition with initial input focus.
+
+The mobile keyboard and other browsers were not visually rechecked. Native browser controls became unavailable before the mobile check could finish; short-height scrolling was reviewed in code.
