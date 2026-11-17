@@ -33,3 +33,13 @@ Reviewed the staged changes against `1388477`, using [ui-refresh.md](./ui-refres
 - Native Chrome confirmed desktop typography/layout, date selection, the attached agenda, and the form transition with initial input focus.
 
 The mobile keyboard and other browsers were not visually rechecked. Native browser controls became unavailable before the mobile check could finish; short-height scrolling was reviewed in code.
+
+## Compact workspace layout
+
+Reviewed the changes against `d755e95`. The layout now uses one workspace header and one feed toolbar, removes decorative copy, and keeps next-deadline/overdue status. Backup access remains available when the mobile sidebar footer is hidden; creation actions are limited to planning views. Storage warnings retain spacing above the workspace panels.
+
+- `npm test`: exit 0; 38 tests across five files. Added navigation/header, feed source link, backup access/focus, and planning-summary checks; existing calendar, task, persistence, and agent tests pass.
+- `npm run build`: exit 0, including TypeScript checks.
+- `npm run lint` and `git diff --check`: exit 0.
+
+Visual verification was unavailable: the native browser host could not connect. Responsive wrapping and spacing were reviewed in CSS, but desktop/mobile appearance and painted contrast were not checked in a browser for this revision. No dependencies or storage schema changes.

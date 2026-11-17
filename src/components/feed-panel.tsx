@@ -79,9 +79,7 @@ function RepositoryCard({
         </span>
         <ArrowUpRight size={15} />
       </Button>
-      <p className="repo-description">
-        {entry.description || 'Open the original source to read more.'}
-      </p>
+      {entry.description && <p className="repo-description">{entry.description}</p>}
       <div className="repo-meta">
         {entry.language && (
           <span>
@@ -157,7 +155,7 @@ export function FeedPanel({
         )
         if (!response.ok)
           throw new Error(
-            `${source.name} is taking a moment. Try again, or visit the source.`,
+            `${source.name} is unavailable. Retry or open the source.`,
           )
         const data = parseFeed(await response.json(), source.id, period)
         if (!controller.signal.aborted)
@@ -170,7 +168,7 @@ export function FeedPanel({
             error:
               cause instanceof Error && cause.name !== 'TimeoutError'
                 ? cause.message
-                : 'The feed timed out. Try again in a moment.',
+                : 'The feed timed out. Try again.',
           })
       }
     }
@@ -181,36 +179,6 @@ export function FeedPanel({
   const entries = savedOnly ? saved : (result?.entries ?? [])
   return (
     <section className="feed-section" aria-labelledby="feeds-title">
-      <header className="feed-header">
-        <div className="feed-heading">
-          <span className="section-icon">
-            {savedOnly ? <Bookmark size={20} /> : <TrendingUp size={20} />}
-          </span>
-          <div>
-            <h2 id="feeds-title">
-              {savedOnly
-                ? 'Saved for a quieter moment'
-                : 'A window into what’s next'}
-            </h2>
-            <p>
-              {savedOnly
-                ? 'Good discoveries, kept close.'
-                : 'A few things worth your attention, when you have the space.'}
-            </p>
-          </div>
-        </div>
-        {!savedOnly && (
-          <Button
-            className="button secondary small"
-            render={
-              <a href={source.url} target="_blank" rel="noopener noreferrer" />
-            }
-          >
-            {source.linkLabel}
-            <ArrowUpRight size={14} />
-          </Button>
-        )}
-      </header>
       <div className="feed-container">
         <div className="feed-toolbar">
           <div className="feed-source">
@@ -221,10 +189,8 @@ export function FeedPanel({
             ) : (
               <Rss size={19} />
             )}
-            <h3>{savedOnly ? 'Your reading list' : source.name}</h3>
-            <span className="count-badge">
-              {savedOnly ? saved.length : 'Feed'}
-            </span>
+            <h2 id="feeds-title">{savedOnly ? 'Saved' : source.name}</h2>
+            {savedOnly && <span className="count-badge">{saved.length}</span>}
           </div>
           {!savedOnly && (
             <div className="feed-controls">
@@ -256,6 +222,16 @@ export function FeedPanel({
               >
                 <RefreshCw size={15} />
               </Button>
+              <Button
+                className="icon-button"
+                aria-label={source.linkLabel}
+                title={source.linkLabel}
+                render={
+                  <a href={source.url} target="_blank" rel="noopener noreferrer" />
+                }
+              >
+                <ArrowUpRight size={17} />
+              </Button>
             </div>
           )}
         </div>
@@ -283,7 +259,7 @@ export function FeedPanel({
         ) : error && !savedOnly ? (
           <div className="feed-empty">
             <CircleAlert size={25} />
-            <h3>Your feed will be back.</h3>
+            <h3>Feed unavailable</h3>
             <p>{error}</p>
             <Button
               className="button secondary small"
@@ -307,15 +283,11 @@ export function FeedPanel({
         ) : (
           <div className="feed-empty">
             {savedOnly ? <Bookmark size={25} /> : <ArrowDownToLine size={25} />}
-            <h3>
-              {savedOnly
-                ? 'Keep something worth coming back to.'
-                : 'Nothing here just yet.'}
-            </h3>
+            <h3>{savedOnly ? 'No saved items' : 'No items'}</h3>
             <p>
               {savedOnly
                 ? 'Use the bookmark on a repository to save it here.'
-                : 'Try refreshing, or explore GitHub directly.'}
+                : 'Refresh or open the source.'}
             </p>
           </div>
         )}

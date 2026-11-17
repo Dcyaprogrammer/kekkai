@@ -6,14 +6,12 @@ import {
   ArrowUpRight,
   Bookmark,
   CalendarDays,
-  ChevronRight,
   CircleAlert,
   HardDrive,
   LayoutGrid,
   ListTodo,
   Plus,
   RotateCcw,
-  Sprout,
   X,
 } from 'lucide-react'
 import { BackupDialog } from './components/backup-dialog'
@@ -40,7 +38,7 @@ const viewNames: Record<View, string> = {
   calendar: 'Calendar',
   tasks: 'To-do list',
   feeds: 'GitHub Trending',
-  saved: 'Saved discoveries',
+  saved: 'Saved',
 }
 const agent = createAgent()
 
@@ -59,6 +57,7 @@ export default function App() {
   const [deleted, setDeleted] = useState<PlanningItem | null>(null)
   const [notice, setNotice] = useState('')
   const today = localDate()
+  const planning = view === 'overview' || view === 'calendar' || view === 'tasks'
   const tasks = data.items.filter((item) => item.kind === 'task' && !item.done)
   const upcoming = data.items
     .filter(
@@ -215,13 +214,6 @@ export default function App() {
             kekkai<span className="brand-period">.</span>
           </span>
         </div>
-        <div className="workspace-label">
-          <span className="workspace-avatar">D</span>
-          <div>
-            <strong>My workspace</strong>
-            <span>A space of your own</span>
-          </div>
-        </div>
         <nav aria-label="Workspace navigation" className="workspace-nav">
           <p className="nav-label">Workspace</p>
           {(
@@ -267,14 +259,6 @@ export default function App() {
           </Button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="quiet-note">
-            <Sprout size={20} strokeWidth={1.3} />
-            <p>
-              A little less noise.
-              <br />
-              <strong>A little more intention.</strong>
-            </p>
-          </div>
           <Button className="nav-button backup-nav" onClick={openBackup}>
             <HardDrive size={16} />
             <span>Backups & storage</span>
@@ -287,65 +271,64 @@ export default function App() {
         </div>
       </aside>
       <div className="main-shell">
-        <header className="topbar">
-          <div className="breadcrumb">
-            <span>My workspace</span>
-            <ChevronRight size={13} />
-            <strong>{viewNames[view]}</strong>
-          </div>
-          <div className="topbar-right">
-            <span className="personal-label">
-              <span className="status-dot" />
-              Personal space
-            </span>
-            <Button
-              className="profile-button"
-              aria-label="Open workspace backups"
-              onClick={openBackup}
-            >
-              D
-            </Button>
-          </div>
-        </header>
         <main id="main-content" tabIndex={-1}>
-          <div className="page-heading">
-            <div>
-              <p className="today-label">
-                {formatDate(today, {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-              <h1>
-                {view === 'overview' ? 'Your day, in focus.' : viewNames[view]}
-              </h1>
-              <p className="page-description">
-                {view === 'overview'
-                  ? 'A little structure for your plans. A little space for discovery.'
-                  : view === 'calendar'
-                    ? 'Keep your commitments in sight, and your mind a little lighter.'
-                    : view === 'tasks'
-                      ? 'Turn the things on your mind into small, doable steps.'
-                      : view === 'saved'
-                        ? 'A home for the things you want to come back to.'
-                        : 'Interesting projects, a little closer to home.'}
-              </p>
-            </div>
-            <div className="heading-actions">
-              <Button
-                className="button secondary"
-                onClick={() => newDeadline(selected)}
+          <header className="workspace-header">
+            <div className="page-heading">
+              <div className="page-title">
+                <h1>{viewNames[view]}</h1>
+                <time dateTime={today}>
+                  {formatDate(today, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </time>
+              </div>
+              <div
+                className="heading-actions"
+                data-planning={planning ? '' : undefined}
               >
-                <CalendarDays size={15} />
-                Add deadline
-              </Button>
-              <Button className="button primary" onClick={newTask}>
-                <Plus size={16} />
-                New task
-              </Button>
+                {planning && (
+                  <>
+                    <Button
+                      className="button secondary"
+                      onClick={() => newDeadline(selected)}
+                    >
+                      <CalendarDays size={15} />
+                      Add deadline
+                    </Button>
+                    <Button className="button primary" onClick={newTask}>
+                      <Plus size={16} />
+                      New task
+                    </Button>
+                  </>
+                )}
+                <Button
+                  className="icon-button header-backup"
+                  aria-label="Open workspace backups"
+                  title="Backups & storage"
+                  onClick={openBackup}
+                >
+                  <HardDrive size={18} />
+                </Button>
+              </div>
             </div>
-          </div>
+            {planning && (upcoming.length > 0 || overdue.length > 0) && (
+              <div className="day-summary">
+                {upcoming.length > 0 && (
+                  <span className="next-deadline">
+                    Next deadline: {formatDate(upcoming[0].date!)} —{' '}
+                    {upcoming[0].title}
+                  </span>
+                )}
+                {overdue.length > 0 && (
+                  <span className="overdue-summary">
+                    {overdue.length} overdue
+                  </span>
+                )}
+              </div>
+            )}
+          </header>
           {error && (
             <div className="storage-warning" role="alert">
               <CircleAlert size={17} />
@@ -353,27 +336,6 @@ export default function App() {
               <Button className="button secondary small" onClick={openBackup}>
                 Backups
               </Button>
-            </div>
-          )}
-          {(view === 'overview' || view === 'calendar' || view === 'tasks') && (
-            <div className="day-summary">
-              <span>
-                <span className="summary-dot" />
-                {tasks.length
-                  ? `${tasks.length} open ${tasks.length === 1 ? 'task' : 'tasks'}`
-                  : 'A fresh start'}
-              </span>
-              <span className="summary-divider" />
-              <span>
-                {upcoming.length
-                  ? `Next deadline: ${formatDate(upcoming[0].date!)} — ${upcoming[0].title}`
-                  : 'No upcoming deadlines'}
-              </span>
-              {overdue.length > 0 && (
-                <span className="overdue-summary">
-                  {overdue.length} overdue
-                </span>
-              )}
             </div>
           )}
           {view === 'overview' && (
@@ -400,12 +362,6 @@ export default function App() {
           {view === 'saved' && (
             <FeedPanel savedOnly saved={data.saved} onSave={saveEntry} />
           )}
-          <footer className="page-footer">
-            <span>Made for a more intentional day.</span>
-            <span>
-              kekkai <span aria-hidden="true">✳</span> your personal feedspace
-            </span>
-          </footer>
         </main>
       </div>
       {editor && (

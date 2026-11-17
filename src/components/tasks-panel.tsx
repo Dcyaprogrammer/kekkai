@@ -16,7 +16,6 @@ import {
   CalendarDays,
   Check,
   CircleCheck,
-  ListTodo,
   MoreHorizontal,
   Plus,
 } from 'lucide-react'
@@ -59,7 +58,6 @@ export function TasksPanel({ items, onAdd, onNew, onEdit, onToggle }: Props) {
             To-do list{' '}
             <span className="count-badge">{tasks.length - completed}</span>
           </h2>
-          <p>Small steps. Meaningful progress.</p>
         </div>
         <Button
           className="icon-button"
@@ -147,33 +145,13 @@ export function TasksPanel({ items, onAdd, onNew, onEdit, onToggle }: Props) {
           </ul>
         ) : (
           <div className="tasks-empty">
-            <div className="empty-illustration">
-              {filter === 'done' ? (
-                <CircleCheck size={25} strokeWidth={1.4} />
-              ) : (
-                <ListTodo size={25} strokeWidth={1.4} />
-              )}
-            </div>
-            <h3>
-              {filter === 'done'
-                ? 'Good things take small steps.'
-                : tasks.length
-                  ? 'A clean slate. Nicely done.'
-                  : 'What’s on your mind?'}
-            </h3>
             <p>
               {filter === 'done'
-                ? 'Your completed tasks will land here.'
+                ? 'No completed tasks.'
                 : tasks.length
-                  ? 'Everything is checked off. Enjoy the space.'
-                  : 'Get it out of your head and into your day.'}
+                  ? 'No open tasks.'
+                  : 'No tasks yet.'}
             </p>
-            {!tasks.length && filter !== 'done' && (
-              <Button className="button secondary small" onClick={onNew}>
-                <Plus size={14} />
-                Add your first task
-              </Button>
-            )}
           </div>
         )}
       </div>

@@ -48,6 +48,70 @@ async function quickTask(title: string) {
   return user
 }
 
+test('workspace header follows navigation and keeps backups available in feed views', async () => {
+  render(<App />)
+  const user = userEvent.setup()
+  expect(screen.getByRole('heading', { level: 1, name: 'Overview' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'New task' })).toBeTruthy()
+  await user.click(screen.getByRole('button', { name: 'GitHub Trending' }))
+  expect(
+    screen.getByRole('heading', { level: 1, name: 'GitHub Trending' }),
+  ).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'New task' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Add deadline' })).toBeNull()
+  await screen.findByRole('button', { name: 'Save acme/atlas' })
+  expect(
+    screen.getByRole('link', { name: 'Open GitHub' }).getAttribute('href'),
+  ).toBe('https://github.com/trending')
+  const backup = screen.getByRole('button', { name: 'Open workspace backups' })
+  expect(
+    agent.snapshot().some(
+      (entry) => !entry.offPage && entry.label === 'Open workspace backups',
+    ),
+  ).toBe(true)
+  await user.click(backup)
+  expect(screen.getByRole('dialog')).toBeTruthy()
+  await user.keyboard('{Escape}')
+  await waitFor(() => expect(document.activeElement === backup).toBe(true))
+  await user.click(screen.getByRole('button', { name: 'Overview' }))
+  expect(screen.getByRole('button', { name: 'New task' })).toBeTruthy()
+})
+
+test('compact planning summary retains the next deadline and overdue count', async () => {
+  const today = localDate()
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      ...emptyWorkspace,
+      items: [
+        {
+          id: 'upcoming',
+          kind: 'deadline',
+          title: 'Ship layout',
+          date: today,
+          done: false,
+          notes: '',
+        },
+        {
+          id: 'overdue',
+          kind: 'task',
+          title: 'Review notes',
+          date: '2020-01-01',
+          done: false,
+          notes: '',
+        },
+      ],
+    }),
+  )
+  render(<App />)
+  expect(screen.getByText(/Next deadline:.*Ship layout/)).toBeTruthy()
+  expect(screen.getByText('1 overdue')).toBeTruthy()
+  await userEvent.setup().click(
+    screen.getByRole('button', { name: 'GitHub Trending' }),
+  )
+  expect(screen.queryByText('1 overdue')).toBeNull()
+})
+
 test('captures tasks, completes them with Space, and restores them after reload', async () => {
   const view = render(<App />)
   const user = await quickTask('Sketch a calmer homepage')
@@ -153,7 +217,7 @@ test('saves a real feed entry independently from the current Trending list', asy
     screen.getByRole('link', { name: /acme \/ atlas/ }).getAttribute('href'),
   ).toBe('https://github.com/acme/atlas')
   await user.click(screen.getByRole('button', { name: 'Save acme/atlas' }))
-  expect(screen.getByText('Keep something worth coming back to.')).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'No saved items' })).toBeTruthy()
 })
 
 test('changes Trending period and recovers from a visible fetch error', async () => {
@@ -161,7 +225,7 @@ test('changes Trending period and recovers from a visible fetch error', async ()
   fetch.mockRejectedValueOnce(new Error('Offline'))
   render(<App />)
   const user = userEvent.setup()
-  await screen.findByText('Your feed will be back.')
+  await screen.findByRole('heading', { name: 'Feed unavailable' })
   await user.click(screen.getByRole('button', { name: 'Try again' }))
   await screen.findByRole('button', { name: 'Save acme/atlas' })
   await user.click(screen.getByRole('radio', { name: 'This week' }))
@@ -379,7 +443,7 @@ test('a date opens its attachment and the editor covers it without losing a draf
   await user.click(day)
   let attachment = screen.getByRole('dialog', { name: /^Agenda for/ })
   expect(
-    within(attachment).getByText('No deadlines or dated tasks for this day.'),
+    within(attachment).getByText('No deadlines or dated tasks.'),
   ).toBeTruthy()
   await user.click(
     within(attachment).getByRole('button', { name: 'Add deadline' }),

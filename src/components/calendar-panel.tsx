@@ -146,16 +146,18 @@ export function CalendarPanel({
     <section className="panel calendar-panel" aria-labelledby="calendar-title">
       <header className="panel-header">
         <div>
-          <h2 id="calendar-title">Calendar</h2>
-          <p>
-            {openDeadlines
-              ? `${openDeadlines} open deadline${openDeadlines === 1 ? '' : 's'}`
-              : 'A clear view of what’s ahead.'}
-          </p>
+          <h2 id="calendar-title">
+            Calendar
+            {openDeadlines > 0 && (
+              <span
+                className="count-badge"
+                aria-label={`${openDeadlines} open deadline${openDeadlines === 1 ? '' : 's'}`}
+              >
+                {openDeadlines}
+              </span>
+            )}
+          </h2>
         </div>
-        <span className="calendar-instruction">
-          Select a day to open its agenda
-        </span>
       </header>
       <Calendar
         ref={calendar}
@@ -222,12 +224,6 @@ export function CalendarPanel({
           </CalendarWeeks>
         </CalendarGrid>
       </Calendar>
-      <footer className="calendar-legend">
-        <span>
-          {formatDate(today, { month: 'long', day: 'numeric' })} today
-        </span>
-        <span>Plans need a little space.</span>
-      </footer>
       <Popover
         controller={attachment}
         modal={editing ? true : 'trap-focus'}
@@ -355,8 +351,7 @@ export function CalendarPanel({
                 </ul>
               ) : (
                 <div className="agenda-empty">
-                  <h4>A little breathing room.</h4>
-                  <p>No deadlines or dated tasks for this day.</p>
+                  <p>No deadlines or dated tasks.</p>
                 </div>
               )}
               <Button
@@ -388,9 +383,6 @@ export function CalendarPanel({
                 <span>{formatDate(selected)}</span>
               </header>
               <h3>{draft?.id ? 'Edit deadline' : 'New deadline'}</h3>
-              <p className="attachment-editor-description">
-                Give this day a clear commitment.
-              </p>
               {draft && (
                 <ItemForm
                   key={session}

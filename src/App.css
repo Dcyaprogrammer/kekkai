@@ -38,40 +38,14 @@
 .brand-period {
   color: #7963c9;
 }
-.workspace-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 29px 12px 28px;
-}
-.workspace-avatar,
-.profile-button {
-  background: #eeeaf8;
-  color: #62508f;
-  border: 1px solid #e3dcf1;
-  display: grid;
-  place-items: center;
-  font-weight: 600;
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
-  font-size: 14px;
-}
-.workspace-label strong {
-  font-size: 14px;
-  font-weight: 600;
-}
-.workspace-label div > span {
-  display: block;
-  font-size: 12px;
-  color: #71717a;
-  margin-top: 4px;
-}
 .nav-label {
   color: #71717a;
   font-size: 12px;
   font-weight: 500;
   margin: 1px 13px 11px;
+}
+.workspace-nav {
+  margin-top: 32px;
 }
 .nav-button {
   display: flex;
@@ -126,20 +100,6 @@
 .sidebar-bottom {
   margin-top: auto;
 }
-.quiet-note {
-  padding: 22px 12px 25px;
-  color: #8c819d;
-}
-.quiet-note p {
-  font-size: 14px;
-  line-height: 1.9;
-  color: #71717a;
-  margin-top: 9px;
-}
-.quiet-note strong {
-  font-weight: 450;
-  color: #52525b;
-}
 .backup-nav {
   font-size: 14px;
   padding: 0 11px;
@@ -168,80 +128,53 @@
 .main-shell {
   margin-left: 216px;
 }
-.topbar {
-  height: 63px;
-  border-bottom: 1px solid #e8e8eb;
-  padding: 0 38px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.8);
-}
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  color: #71717a;
-}
-.breadcrumb strong {
-  font-weight: 500;
-  color: #3f3f46;
-}
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 23px;
-}
-.personal-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #71717a;
-}
-.profile-button {
-  width: 27px;
-  height: 27px;
-  border-radius: 50%;
-  font-size: 12px;
-}
 main {
   max-width: 1640px;
-  padding: 37px 38px 0;
+  padding: 30px 38px 36px;
   margin: auto;
   outline: none;
 }
 .page-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px 24px;
 }
-.today-label {
-  font-size: 14px;
-  font-weight: 450;
+.workspace-header {
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e4e4e7;
+}
+.page-title {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  min-width: 0;
+}
+.page-title time {
   color: #71717a;
-  margin-bottom: 10px;
+  font-size: 14px;
+  white-space: nowrap;
 }
 h1 {
-  font-size: clamp(30px, 2.5vw, 38px);
+  font-size: clamp(28px, 2.3vw, 32px);
   line-height: 1.2;
   font-weight: 620;
   letter-spacing: -1.25px;
   color: #202024;
 }
-.page-description {
-  font-size: 14px;
-  color: #71717a;
-  margin-top: 10px;
-  line-height: 1.6;
-}
 .heading-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  padding-top: 18px;
+}
+.heading-actions .header-backup {
+  width: 34px;
+  height: 34px;
 }
 .button {
   display: inline-flex;
@@ -325,33 +258,23 @@ h1 {
 }
 .day-summary {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  min-height: 21px;
-  margin: 24px 0 18px;
-  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: baseline;
+  margin-top: 16px;
+  font-size: 14px;
   line-height: 1.5;
   color: #71717a;
 }
-.day-summary > span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.summary-dot {
-  height: 5px;
-  width: 5px;
-  border-radius: 50%;
-  background: #8c7aa9;
-}
-.summary-divider {
-  height: 11px;
-  width: 1px;
-  background: #dedee4;
+.next-deadline {
+  flex: 1;
+  min-width: 180px;
+  overflow-wrap: anywhere;
 }
 .overdue-summary {
   margin-left: auto;
   color: #a33a40;
+  white-space: nowrap;
 }
 .planning-grid {
   display: grid;
@@ -375,8 +298,7 @@ h1 {
   gap: 12px;
   border-bottom: 1px solid #ededf0;
 }
-.panel-header h2,
-.feed-heading h2 {
+.panel-header h2 {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -384,12 +306,6 @@ h1 {
   font-weight: 580;
   letter-spacing: -0.25px;
   color: #27272a;
-}
-.panel-header p {
-  color: #71717a;
-  font-size: 12px;
-  margin-top: 6px;
-  line-height: 1.5;
 }
 .count-badge {
   display: inline-flex;
@@ -419,13 +335,6 @@ h1 {
 }
 .calendar-panel .panel-header {
   background: white;
-}
-.calendar-instruction {
-  font-size: 12px;
-  color: #71717a;
-  text-align: right;
-  line-height: 1.6;
-  max-width: 145px;
 }
 .month-toolbar {
   display: flex;
@@ -526,16 +435,6 @@ h1 {
 }
 .calendar-grid .calendar-day[data-selected]:focus-visible {
   outline-color: white;
-}
-.calendar-legend {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  padding: 15px 24px;
-  border-top: 1px solid #ededf0;
-  color: #62626b;
-  font-size: 12px;
 }
 .day-attachment[data-slot='popover-content'] {
   --attachment-height: min(520px, var(--available-height, 520px));
@@ -685,12 +584,6 @@ h1 {
   justify-content: center;
   padding: 25px 0;
 }
-.agenda-empty h4 {
-  font-size: 16px;
-  font-weight: 500;
-  margin: 0 0 8px;
-  letter-spacing: -0.2px;
-}
 .agenda-empty p {
   color: #62626b;
   font-size: 14px;
@@ -719,12 +612,7 @@ h1 {
   font-size: 23px;
   letter-spacing: -0.7px;
   font-weight: 550;
-}
-.attachment-editor-description {
-  font-size: 14px;
-  color: #62626b;
-  line-height: 1.6;
-  margin: 7px 0 18px;
+  margin-bottom: 20px;
 }
 .attachment-editor .editor-form {
   flex: 1;
@@ -934,36 +822,13 @@ h1 {
   align-items: center;
   justify-content: center;
   text-align: center;
-  min-height: 233px;
+  min-height: 140px;
   padding: 23px 10px;
 }
-.empty-illustration {
-  height: 53px;
-  width: 53px;
-  display: grid;
-  place-items: center;
-  background: #f7f6fa;
-  border: 1px solid #eeebf3;
-  color: #9a8aaa;
-  border-radius: 15px;
-  margin-bottom: 16px;
-  box-shadow:
-    0 3px 0 #fdfcfe,
-    0 4px 0 #eeebf3;
-}
-.tasks-empty h3 {
-  font-size: 14px;
-  font-weight: 500;
-  color: #52525b;
-}
 .tasks-empty p {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
   color: #71717a;
-  margin-top: 7px;
-}
-.tasks-empty .button {
-  margin-top: 17px;
 }
 .task-progress {
   padding: 16px 21px 20px;
@@ -993,39 +858,10 @@ h1 {
   transition: width 0.2s ease;
 }
 .feed-section {
-  margin-top: 32px;
+  margin-top: 24px;
 }
-.feed-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: center;
-  margin-bottom: 19px;
-}
-.feed-heading {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.section-icon {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #7a7285;
-  background: #f1eef6;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid #e9e4f0;
-}
-.feed-heading h2 {
-  font-size: 16px;
-}
-.feed-heading p {
-  font-size: 12px;
-  line-height: 1.6;
-  color: #71717a;
-  margin-top: 6px;
+main > .feed-section {
+  margin-top: 0;
 }
 .feed-container {
   background: white;
@@ -1035,6 +871,7 @@ h1 {
 }
 .feed-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
@@ -1045,14 +882,12 @@ h1 {
   display: flex;
   align-items: center;
   gap: 9px;
+  min-width: 0;
 }
-.feed-source h3 {
-  font-size: 14px;
+.feed-source h2 {
+  font-size: 16px;
   font-weight: 550;
-}
-.feed-source .count-badge {
-  font-size: 10px;
-  margin-left: 1px;
+  overflow-wrap: anywhere;
 }
 .feed-controls {
   display: flex;
@@ -1221,7 +1056,7 @@ h1 {
   line-height: 1.6;
 }
 .storage-warning {
-  margin-top: 24px;
+  margin: 0 0 24px;
   border: 1px solid #f0dfb6;
   border-radius: 7px;
 }
@@ -1263,25 +1098,6 @@ h1 {
     opacity: 0.4;
   }
 }
-.page-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid #e8e8eb;
-  margin-top: 32px;
-  padding: 19px 0 23px;
-  font-size: 12px;
-  color: #71717a;
-}
-.page-footer > span:last-child {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.page-footer > span:last-child > span {
-  color: #8d789f;
-  font-size: 16px;
-}
 .calendar-focus {
   max-width: 900px;
 }
@@ -1290,9 +1106,6 @@ h1 {
 }
 .tasks-focus {
   max-width: 800px;
-}
-.tasks-focus .tasks-empty {
-  min-height: 300px;
 }
 .tasks-focus .task-list {
   max-height: none;
@@ -1491,16 +1304,13 @@ h1 {
 }
 @media (min-width: 1500px) {
   main {
-    padding: 44px 50px 0;
+    padding: 36px 50px 40px;
   }
   .calendar-grid .calendar-day {
     height: 72px;
   }
   .task-panel-content {
     padding-top: 23px;
-  }
-  .tasks-empty {
-    min-height: 295px;
   }
   .panel-header {
     padding: 23px 25px;
@@ -1520,10 +1330,7 @@ h1 {
     margin-left: 188px;
   }
   main {
-    padding: 28px 25px 0;
-  }
-  .topbar {
-    padding: 0 25px;
+    padding: 26px 25px 32px;
   }
   .planning-grid {
     gap: 16px;
@@ -1546,14 +1353,6 @@ h1 {
     gap: 8px;
     font-size: 10px;
   }
-  .page-heading {
-    align-items: flex-start;
-  }
-  .heading-actions {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    padding-top: 23px;
-  }
   .undo-toast,
   .notice-toast {
     left: calc(50% + 94px);
@@ -1562,9 +1361,6 @@ h1 {
 @media (max-width: 940px) {
   .planning-grid {
     grid-template-columns: 1fr;
-  }
-  .tasks-empty {
-    min-height: 180px;
   }
   .task-progress {
     padding-top: 13px;
@@ -1583,23 +1379,6 @@ h1 {
   }
   .repository-card:nth-child(2n) {
     border-right: 0;
-  }
-  .page-heading {
-    flex-direction: column;
-    gap: 17px;
-  }
-  .heading-actions {
-    padding-top: 0;
-    justify-content: flex-start;
-  }
-  .day-summary {
-    margin-top: 20px;
-  }
-  .day-summary > span:nth-child(3) {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: block;
   }
 }
 @media (max-width: 650px) {
@@ -1626,7 +1405,6 @@ h1 {
     width: 20px;
     height: 20px;
   }
-  .workspace-label,
   .sidebar-bottom,
   .nav-label {
     display: none;
@@ -1659,41 +1437,24 @@ h1 {
   .main-shell {
     margin-left: 0;
   }
-  .topbar {
-    height: 54px;
-    padding: 0 20px;
-  }
-  .breadcrumb {
-    font-size: 12px;
-    gap: 8px;
-  }
-  .topbar-right {
-    gap: 12px;
-  }
-  .personal-label {
-    font-size: 12px;
-  }
   main {
-    padding: 26px 18px 0;
+    padding: 22px 18px 28px;
   }
   h1 {
     font-size: 29px;
   }
-  .page-description {
-    font-size: 14px;
-    max-width: 300px;
-  }
-  .today-label {
-    font-size: 12px;
-  }
-  .heading-actions {
+  .heading-actions[data-planning] {
     width: 100%;
   }
   .heading-actions .button {
-    min-height: 33px;
+    flex: 1;
+    padding: 8px 10px;
+  }
+  .heading-actions .header-backup {
+    margin-left: auto;
   }
   .day-summary {
-    font-size: 12px;
+    font-size: 14px;
     gap: 9px;
   }
   .overdue-summary {
@@ -1717,42 +1478,6 @@ h1 {
   .calendar-grid th {
     padding-left: 7px;
   }
-  .calendar-instruction {
-    display: none;
-  }
-  .calendar-legend {
-    font-size: 10px;
-    padding: 11px 16px;
-  }
-  .feed-section {
-    margin-top: 27px;
-  }
-  .feed-heading {
-    gap: 9px;
-  }
-  .feed-heading h2 {
-    font-size: 14px;
-  }
-  .feed-heading p {
-    font-size: 12px;
-    max-width: 215px;
-  }
-  .feed-header {
-    gap: 8px;
-    align-items: flex-start;
-  }
-  .feed-header > .button {
-    font-size: 10px;
-    padding: 6px;
-  }
-  .section-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-  }
-  .section-icon svg {
-    width: 17px;
-  }
   .feed-toolbar {
     padding: 14px;
     gap: 6px;
@@ -1761,18 +1486,15 @@ h1 {
   .feed-source {
     gap: 7px;
   }
-  .feed-source h3 {
-    font-size: 12px;
-  }
-  .feed-source .count-badge {
-    display: none;
+  .feed-source h2 {
+    font-size: 14px;
   }
   .feed-controls {
     gap: 4px;
   }
   .segments.compact [data-slot='segmented-control-item'] {
     padding: 0 7px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .repository-grid {
     grid-template-columns: 1fr;
@@ -1799,17 +1521,6 @@ h1 {
   }
   .feed-footer > span:last-child {
     display: none;
-  }
-  .page-footer {
-    font-size: 10px;
-    gap: 10px;
-    margin-top: 25px;
-  }
-  .page-footer > span:last-child {
-    font-size: 0;
-  }
-  .page-footer > span:last-child > span {
-    font-size: 16px;
   }
   .undo-toast,
   .notice-toast {

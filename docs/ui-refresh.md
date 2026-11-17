@@ -7,3 +7,9 @@
 - Preserve existing validation, local persistence, editing, deletion/undo, and backup behavior. Reuse the item form for task dialogs and deadline attachments.
 
 Font references: [Vercel Geist](https://vercel.com/font) and [shadcn typography](https://ui.shadcn.com/docs/typeset). The font ships through `@fontsource-variable/geist`; page loads do not request a third-party font service. Animation uses CSS and ui-sdk popup lifecycle attributes.
+
+## Workspace layout
+
+Use one compact header for the current view, date, relevant creation actions, and backups. Keep the next deadline and overdue count when present; omit empty summaries and repeated task counts. Creation actions appear in planning views, while backups stay available in every view, including mobile. Keep the calendar/task columns and existing calendar interactions.
+
+Each feed has one toolbar with its source title, period selector, refresh, and source link. Remove decorative slogans, repeated descriptions, and the page footer. Empty states state what is missing; retain useful recovery instructions and storage warnings.
