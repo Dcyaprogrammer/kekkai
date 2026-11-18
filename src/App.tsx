@@ -9,7 +9,6 @@ import {
   CircleAlert,
   HardDrive,
   LayoutGrid,
-  ListTodo,
   Plus,
   RotateCcw,
   X,
@@ -32,11 +31,9 @@ import {
 } from './workspace'
 import './App.css'
 
-type View = 'overview' | 'calendar' | 'tasks' | 'feeds' | 'saved'
+type View = 'overview' | 'feeds' | 'saved'
 const viewNames: Record<View, string> = {
   overview: 'Overview',
-  calendar: 'Calendar',
-  tasks: 'To-do list',
   feeds: 'GitHub Trending',
   saved: 'Saved',
 }
@@ -57,8 +54,7 @@ export default function App() {
   const [deleted, setDeleted] = useState<PlanningItem | null>(null)
   const [notice, setNotice] = useState('')
   const today = localDate()
-  const planning = view === 'overview' || view === 'calendar' || view === 'tasks'
-  const tasks = data.items.filter((item) => item.kind === 'task' && !item.done)
+  const planning = view === 'overview'
   const upcoming = data.items
     .filter(
       (item) => item.kind === 'deadline' && !item.done && item.date! >= today,
@@ -147,7 +143,6 @@ export default function App() {
   }
   function newDeadline(date: string) {
     selectDate(date)
-    if (view !== 'overview' && view !== 'calendar') setView('calendar')
     setCalendarRequest((previous) => ({ date, id: (previous?.id ?? 0) + 1 }))
   }
   function newTask() {
@@ -216,26 +211,14 @@ export default function App() {
         </div>
         <nav aria-label="Workspace navigation" className="workspace-nav">
           <p className="nav-label">Workspace</p>
-          {(
-            [
-              { id: 'overview', icon: LayoutGrid, text: 'Overview' },
-              { id: 'calendar', icon: CalendarDays, text: 'Calendar' },
-              { id: 'tasks', icon: ListTodo, text: 'To-do list' },
-            ] as const
-          ).map(({ id, icon: Icon, text }) => (
-            <Button
-              key={id}
-              className={`nav-button${view === id ? ' active' : ''}`}
-              aria-current={view === id ? 'page' : undefined}
-              onClick={() => setView(id)}
-            >
-              <Icon size={17} />
-              <span>{text}</span>
-              {id === 'tasks' && tasks.length > 0 && (
-                <span className="nav-count">{tasks.length}</span>
-              )}
-            </Button>
-          ))}
+          <Button
+            className={`nav-button${view === 'overview' ? ' active' : ''}`}
+            aria-current={view === 'overview' ? 'page' : undefined}
+            onClick={() => setView('overview')}
+          >
+            <LayoutGrid size={17} />
+            <span>Overview</span>
+          </Button>
           <p className="nav-label discover-label">Discover</p>
           <Button
             className={`nav-button${view === 'feeds' ? ' active' : ''}`}
@@ -352,10 +335,6 @@ export default function App() {
               />
             </>
           )}
-          {view === 'calendar' && (
-            <div className="calendar-focus">{calendar}</div>
-          )}
-          {view === 'tasks' && <div className="tasks-focus">{todo}</div>}
           {view === 'feeds' && (
             <FeedPanel saved={data.saved} onSave={saveEntry} />
           )}

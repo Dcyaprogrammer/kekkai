@@ -52,6 +52,13 @@ test('workspace header follows navigation and keeps backups available in feed vi
   render(<App />)
   const user = userEvent.setup()
   expect(screen.getByRole('heading', { level: 1, name: 'Overview' })).toBeTruthy()
+  expect(
+    within(screen.getByRole('navigation', { name: 'Workspace navigation' }))
+      .getAllByRole('button')
+      .map((button) => button.textContent),
+  ).toEqual(['Overview', 'GitHub Trending', 'Saved'])
+  expect(screen.getByLabelText('Deadline calendar')).toBeTruthy()
+  expect(screen.getByLabelText('Quick task title')).toBeTruthy()
   expect(screen.getByRole('button', { name: 'New task' })).toBeTruthy()
   await user.click(screen.getByRole('button', { name: 'GitHub Trending' }))
   expect(
@@ -75,6 +82,8 @@ test('workspace header follows navigation and keeps backups available in feed vi
   await waitFor(() => expect(document.activeElement === backup).toBe(true))
   await user.click(screen.getByRole('button', { name: 'Overview' }))
   expect(screen.getByRole('button', { name: 'New task' })).toBeTruthy()
+  expect(screen.getByLabelText('Deadline calendar')).toBeTruthy()
+  expect(screen.getByLabelText('Quick task title')).toBeTruthy()
 })
 
 test('compact planning summary retains the next deadline and overdue count', async () => {
@@ -487,22 +496,21 @@ test('a date opens its attachment and the editor covers it without losing a draf
   ).toBe('')
 })
 
-test('adding from another view opens the calendar form once', async () => {
+test('adding a deadline on Overview does not reopen its form after navigating back', async () => {
   render(<App />)
   const user = userEvent.setup()
-  await user.click(screen.getByRole('button', { name: 'To-do list' }))
   await user.click(screen.getByRole('button', { name: 'Add deadline' }))
   const attachment = screen.getByRole('dialog', { name: /^Agenda for/ })
   await user.type(
     within(attachment).getByRole('textbox', { name: 'Deadline name' }),
-    'A deadline from the tasks view',
+    'A deadline from Overview',
   )
   await user.click(
     within(attachment).getByRole('button', { name: 'Add deadline' }),
   )
   await user.keyboard('{Escape}')
-  await user.click(screen.getByRole('button', { name: 'To-do list' }))
-  await user.click(screen.getByRole('button', { name: 'Calendar' }))
+  await user.click(screen.getByRole('button', { name: 'GitHub Trending' }))
+  await user.click(screen.getByRole('button', { name: 'Overview' }))
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getByRole('gridcell', { name: /1 deadline/ })).toBeTruthy()
 })

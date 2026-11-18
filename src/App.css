@@ -1098,18 +1098,6 @@ main > .feed-section {
     opacity: 0.4;
   }
 }
-.calendar-focus {
-  max-width: 900px;
-}
-.calendar-focus .calendar-grid .calendar-day {
-  height: 76px;
-}
-.tasks-focus {
-  max-width: 800px;
-}
-.tasks-focus .task-list {
-  max-height: none;
-}
 .editor-dialog[data-slot='dialog-content'] {
   width: min(460px, calc(100vw - 32px));
   max-width: none;
@@ -1525,9 +1513,6 @@ main > .feed-section {
   .undo-toast,
   .notice-toast {
     left: 50%;
-  }
-  .calendar-focus .calendar-grid .calendar-day {
-    height: 54px;
   }
   .storage-warning {
     padding: 11px;

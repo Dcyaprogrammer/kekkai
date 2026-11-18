@@ -10,6 +10,6 @@ Font references: [Vercel Geist](https://vercel.com/font) and [shadcn typography]
 
 ## Workspace layout
 
-Use one compact header for the current view, date, relevant creation actions, and backups. Keep the next deadline and overdue count when present; omit empty summaries and repeated task counts. Creation actions appear in planning views, while backups stay available in every view, including mobile. Keep the calendar/task columns and existing calendar interactions.
+Use one compact header for the current view, date, relevant creation actions, and backups. Keep the next deadline and overdue count when present; omit empty summaries and repeated task counts. Overview contains both the calendar and task list, with no separate calendar or task pages. Creation actions appear on Overview, while backups stay available in every view, including mobile. Keep the calendar/task columns and existing calendar interactions.
 
 Each feed has one toolbar with its source title, period selector, refresh, and source link. Remove decorative slogans, repeated descriptions, and the page footer. Empty states state what is missing; retain useful recovery instructions and storage warnings.
