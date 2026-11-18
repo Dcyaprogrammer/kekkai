@@ -4,7 +4,6 @@ import { Github } from './components/github-icon'
 import { createAgent, registerTools } from '@ui-sdk/react/agent'
 import {
   ArrowUpRight,
-  Bookmark,
   CalendarDays,
   CircleAlert,
   HardDrive,
@@ -31,11 +30,10 @@ import {
 } from './workspace'
 import './App.css'
 
-type View = 'overview' | 'feeds' | 'saved'
+type View = 'overview' | 'feeds'
 const viewNames: Record<View, string> = {
   overview: 'Overview',
   feeds: 'GitHub Trending',
-  saved: 'Saved',
 }
 const agent = createAgent()
 
@@ -229,17 +227,6 @@ export default function App() {
             <span>GitHub Trending</span>
             <span className="nav-source-dot" />
           </Button>
-          <Button
-            className={`nav-button${view === 'saved' ? ' active' : ''}`}
-            aria-current={view === 'saved' ? 'page' : undefined}
-            onClick={() => setView('saved')}
-          >
-            <Bookmark size={17} />
-            <span>Saved</span>
-            {data.saved.length > 0 && (
-              <span className="nav-count">{data.saved.length}</span>
-            )}
-          </Button>
         </nav>
         <div className="sidebar-bottom">
           <Button className="nav-button backup-nav" onClick={openBackup}>
@@ -337,9 +324,6 @@ export default function App() {
           )}
           {view === 'feeds' && (
             <FeedPanel saved={data.saved} onSave={saveEntry} />
-          )}
-          {view === 'saved' && (
-            <FeedPanel savedOnly saved={data.saved} onSave={saveEntry} />
           )}
         </main>
       </div>

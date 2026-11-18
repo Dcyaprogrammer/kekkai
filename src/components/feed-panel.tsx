@@ -112,7 +112,6 @@ function RepositoryCard({
 type Props = {
   saved: FeedEntry[]
   onSave: (entry: FeedEntry) => void
-  savedOnly?: boolean
   source?: FeedSource
   limit?: number
   onSeeAll?: () => void
@@ -121,7 +120,6 @@ type Props = {
 export function FeedPanel({
   saved,
   onSave,
-  savedOnly = false,
   source = feedSources[0],
   limit,
   onSeeAll,
@@ -137,10 +135,9 @@ export function FeedPanel({
   const current = responseState?.key === requestKey ? responseState : null
   const result = current?.result ?? null
   const error = current?.error ?? ''
-  const loading = !savedOnly && !current
+  const loading = !current
 
   useEffect(() => {
-    if (savedOnly) return
     const controller = new AbortController()
     async function load() {
       try {
@@ -174,66 +171,61 @@ export function FeedPanel({
     }
     void load()
     return () => controller.abort()
-  }, [period, requestKey, savedOnly, source.id, source.name])
+  }, [period, requestKey, source.id, source.name])
 
-  const entries = savedOnly ? saved : (result?.entries ?? [])
+  const entries = result?.entries ?? []
   return (
     <section className="feed-section" aria-labelledby="feeds-title">
       <div className="feed-container">
         <div className="feed-toolbar">
           <div className="feed-source">
-            {savedOnly ? (
-              <Bookmark size={19} />
-            ) : source.id === 'github-trending' ? (
+            {source.id === 'github-trending' ? (
               <Github size={19} />
             ) : (
               <Rss size={19} />
             )}
-            <h2 id="feeds-title">{savedOnly ? 'Saved' : source.name}</h2>
-            {savedOnly && <span className="count-badge">{saved.length}</span>}
+            <h2 id="feeds-title">{source.name}</h2>
           </div>
-          {!savedOnly && (
-            <div className="feed-controls">
-              {source.periods.length > 0 && (
-                <SegmentedControl
-                  aria-label="Trending period"
-                  className="segments compact"
-                  value={period}
-                  onValueChange={(value) => {
-                    if (value === 'daily' || value === 'weekly')
-                      setPeriod(value)
-                  }}
-                >
-                  {source.periods.map((option) => (
-                    <SegmentedControlItem
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </SegmentedControlItem>
-                  ))}
-                </SegmentedControl>
-              )}
-              <Button
-                className={`icon-button${loading ? ' spinning' : ''}`}
-                aria-label={`Refresh ${source.name}`}
-                disabled={loading}
-                onClick={() => setRefresh((value) => value + 1)}
+          <div className="feed-controls">
+            {source.periods.length > 0 && (
+              <SegmentedControl
+                aria-label="Trending period"
+                className="segments compact"
+                value={period}
+                onValueChange={(value) => {
+                  if (value === 'daily' || value === 'weekly')
+                    setPeriod(value)
+                }}
               >
-                <RefreshCw size={15} />
-              </Button>
-              <Button
-                className="icon-button"
-                aria-label={source.linkLabel}
-                title={source.linkLabel}
-                render={
-                  <a href={source.url} target="_blank" rel="noopener noreferrer" />
-                }
-              >
-                <ArrowUpRight size={17} />
-              </Button>
-            </div>
-          )}
+                {source.periods.map((option) => (
+                  <SegmentedControlItem
+                    key={option.value}
+                    value={option.value}
+                  >
+                    {option.label}
+                  </SegmentedControlItem>
+                ))}
+              </SegmentedControl>
+            )}
+            <Button
+              className={`icon-button${loading ? ' spinning' : ''}`}
+              aria-label={`Refresh ${source.name}`}
+              disabled={loading}
+              onClick={() => setRefresh((value) => value + 1)}
+            >
+              <RefreshCw size={15} />
+            </Button>
+            <Button
+              className="icon-button"
+              aria-label={source.linkLabel}
+              title={source.linkLabel}
+              render={
+                <a href={source.url} target="_blank" rel="noopener noreferrer" />
+              }
+            >
+              <ArrowUpRight size={17} />
+            </Button>
+          </div>
         </div>
         {result?.stale && (
           <div className="feed-warning" role="status">
@@ -256,7 +248,7 @@ export function FeedPanel({
               </div>
             ))}
           </div>
-        ) : error && !savedOnly ? (
+        ) : error ? (
           <div className="feed-empty">
             <CircleAlert size={25} />
             <h3>Feed unavailable</h3>
@@ -282,25 +274,19 @@ export function FeedPanel({
           </div>
         ) : (
           <div className="feed-empty">
-            {savedOnly ? <Bookmark size={25} /> : <ArrowDownToLine size={25} />}
-            <h3>{savedOnly ? 'No saved items' : 'No items'}</h3>
-            <p>
-              {savedOnly
-                ? 'Use the bookmark on a repository to save it here.'
-                : 'Refresh or open the source.'}
-            </p>
+            <ArrowDownToLine size={25} />
+            <h3>No items</h3>
+            <p>Refresh or open the source.</p>
           </div>
         )}
         <footer className="feed-footer">
           <span>
             <span className={`status-dot${error ? ' status-error' : ''}`} />
-            {savedOnly
-              ? `${saved.length} saved ${saved.length === 1 ? 'discovery' : 'discoveries'}`
-              : result
-                ? `${result.stale ? 'Last fetched' : 'Fetched'} ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(result.fetchedAt))}`
-                : loading
-                  ? 'Finding what’s trending…'
-                  : 'Source temporarily unavailable'}
+            {result
+              ? `${result.stale ? 'Last fetched' : 'Fetched'} ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(result.fetchedAt))}`
+              : loading
+                ? 'Finding what’s trending…'
+                : 'Source temporarily unavailable'}
           </span>
           {limit && entries.length > limit && onSeeAll ? (
             <Button className="button ghost small" onClick={onSeeAll}>
@@ -309,8 +295,7 @@ export function FeedPanel({
             </Button>
           ) : (
             <span>
-              {!savedOnly &&
-                source.id === 'github-trending' &&
+              {source.id === 'github-trending' &&
                 `Stars gained ${period === 'daily' ? 'today' : 'this week'}`}
             </span>
           )}

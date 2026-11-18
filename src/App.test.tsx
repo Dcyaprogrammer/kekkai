@@ -56,7 +56,7 @@ test('workspace header follows navigation and keeps backups available in feed vi
     within(screen.getByRole('navigation', { name: 'Workspace navigation' }))
       .getAllByRole('button')
       .map((button) => button.textContent),
-  ).toEqual(['Overview', 'GitHub Trending', 'Saved'])
+  ).toEqual(['Overview', 'GitHub Trending'])
   expect(screen.getByLabelText('Deadline calendar')).toBeTruthy()
   expect(screen.getByLabelText('Quick task title')).toBeTruthy()
   expect(screen.getByRole('button', { name: 'New task' })).toBeTruthy()
@@ -215,18 +215,23 @@ test('validates an empty title, cancels, and closes with Escape without creating
   )
 })
 
-test('saves a real feed entry independently from the current Trending list', async () => {
-  render(<App />)
+test('keeps feed bookmarks after reload and allows removing them on the card', async () => {
+  const view = render(<App />)
   const user = userEvent.setup()
   const save = await screen.findByRole('button', { name: 'Save acme/atlas' })
   await user.click(save)
   expect(save.getAttribute('aria-pressed')).toBe('true')
-  await user.click(screen.getByRole('button', { name: /^Saved/ }))
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).saved).toEqual([entry])
+  view.unmount()
+  render(<App />)
+  const restored = await screen.findByRole('button', { name: 'Save acme/atlas' })
+  expect(restored.getAttribute('aria-pressed')).toBe('true')
   expect(
     screen.getByRole('link', { name: /acme \/ atlas/ }).getAttribute('href'),
   ).toBe('https://github.com/acme/atlas')
-  await user.click(screen.getByRole('button', { name: 'Save acme/atlas' }))
-  expect(screen.getByRole('heading', { name: 'No saved items' })).toBeTruthy()
+  await user.click(restored)
+  expect(restored.getAttribute('aria-pressed')).toBe('false')
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).saved).toEqual([])
 })
 
 test('changes Trending period and recovers from a visible fetch error', async () => {

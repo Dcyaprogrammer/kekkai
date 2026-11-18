@@ -20,11 +20,11 @@ npm start
 
 ## Your workspace
 
-Select a date to open its attached agenda, then use **Add deadline**. The deadline form slides over the agenda; saving or cancelling returns to the day. Open a commitment to edit or delete it; deletion offers Undo. Capture tasks directly in the list, or use **New task** for dates and notes. The calendar's daily agenda includes both deadlines and dated tasks. GitHub repositories can be bookmarked into **Saved**.
+Select a date to open its attached agenda, then use **Add deadline**. The deadline form slides over the agenda; saving or cancelling returns to the day. Open a commitment to edit or delete it; deletion offers Undo. Capture tasks directly in the list, or use **New task** for dates and notes. The calendar's daily agenda includes both deadlines and dated tasks. Repository bookmarks are stored locally and marked on feed cards.
 
 Typography uses locally served Geist Sans with a larger, consistent text scale. Calendar cells use plain frames and text, with inverted colors for selection. Motion respects the system's reduced-motion setting.
 
-Overview contains both the calendar and to-do list; the other views are GitHub Trending and Saved. The compact header keeps the current view, date, and planning actions together. Next-deadline and overdue status appear only when relevant. The storage icon opens backups on every screen, including mobile. Feed controls and the original source link share a single toolbar.
+The two views are Overview, containing both the calendar and to-do list, and GitHub Trending. The compact header keeps the current view, date, and planning actions together. Next-deadline and overdue status appear only when relevant. The storage icon opens backups on every screen, including mobile. Feed controls and the original source link share a single toolbar.
 
 Planning data and saved entries live in this browser's local storage, with no account or synchronization. **Backups & storage** exports JSON and restores backups by merging missing records; existing local edits win. If stored data is unreadable, the original is retained as a recovery copy before any replacement. Storage failures leave changes in memory and show an export warning. Use one tab for editing: concurrent tabs use the last saved workspace. No notifications or time-of-day reminders are included.
 
