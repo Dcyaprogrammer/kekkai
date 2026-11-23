@@ -22,7 +22,11 @@ npm start
 
 Select a date to open its attached agenda, then use **Add deadline**. The deadline form slides over the agenda; saving or cancelling returns to the day. Open a commitment to edit or delete it; deletion offers Undo. Capture tasks directly in the list, or use **New task** for dates and notes. The calendar's daily agenda includes both deadlines and dated tasks. Repository bookmarks are stored locally and marked on feed cards.
 
+Use **Clear completed** below the task progress bar to remove all completed tasks. Undo restores the cleared tasks; open tasks and deadlines are kept.
+
 Typography uses locally served Geist Sans with a larger, consistent text scale. Calendar cells use plain frames and text, with inverted colors for selection. Motion respects the system's reduced-motion setting.
+
+Use the moon button in the header to toggle **Night mode**. The first visit uses your system preference; a manual choice is remembered on this browser. Night mode uses charcoal surfaces, soft text, and muted light calendar selections. The saved theme is applied before the app renders.
 
 The two views are Overview, containing both the calendar and to-do list, and GitHub Trending. The compact header keeps the current view, date, and planning actions together. Next-deadline and overdue status appear only when relevant. The storage icon opens backups on every screen, including mobile. Feed controls and the original source link share a single toolbar.
 

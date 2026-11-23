@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { createAgent } from '@ui-sdk/react/agent'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import App from './App'
+import html from '../index.html?raw'
 import { emptyWorkspace, localDate, STORAGE_KEY } from './workspace'
 
 const agent = createAgent()
@@ -26,6 +27,7 @@ const feed = {
 
 beforeEach(() => {
   localStorage.clear()
+  delete document.documentElement.dataset.theme
   vi.stubGlobal(
     'fetch',
     vi.fn().mockImplementation(
@@ -47,6 +49,79 @@ async function quickTask(title: string) {
   await user.type(screen.getByLabelText('Quick task title'), `${title}{Enter}`)
   return user
 }
+
+test('night mode follows the initial system preference and remembers keyboard changes', async () => {
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }))
+  const view = render(<App />)
+  const user = userEvent.setup()
+  const toggle = screen.getByRole('button', { name: 'Night mode' })
+  expect(toggle.getAttribute('aria-pressed')).toBe('true')
+  expect(document.documentElement.dataset.theme).toBe('dark')
+  toggle.focus()
+  await user.keyboard(' ')
+  expect(toggle.getAttribute('aria-pressed')).toBe('false')
+  expect(document.documentElement.dataset.theme).toBe('light')
+  expect(localStorage.getItem('kekkai.theme')).toBe('light')
+  view.unmount()
+  render(<App />)
+  expect(
+    screen.getByRole('button', { name: 'Night mode' }).getAttribute('aria-pressed'),
+  ).toBe('false')
+  await user.click(screen.getByRole('button', { name: 'GitHub Trending' }))
+  await act(async () => {
+    const result = await agent.act({
+      steps: [{ ref: 'Night mode', action: 'setPressed', args: [true] }],
+    })
+    expect(result.ok, result.error?.message).toBe(true)
+  })
+  expect(document.documentElement.dataset.theme).toBe('dark')
+  expect(localStorage.getItem('kekkai.theme')).toBe('dark')
+})
+
+test('night mode stays usable when browser storage is blocked', async () => {
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false }))
+  const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    throw new Error('blocked')
+  })
+  const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new Error('blocked')
+  })
+  try {
+    render(<App />)
+    expect(document.documentElement.dataset.theme).toBe('light')
+    await userEvent.setup().click(
+      screen.getByRole('button', { name: 'Night mode' }),
+    )
+    expect(document.documentElement.dataset.theme).toBe('dark')
+  } finally {
+    get.mockRestore()
+    set.mockRestore()
+  }
+})
+
+test.each([
+  ['dark', false, 'dark'],
+  ['light', true, 'light'],
+  ['invalid', true, 'dark'],
+] as const)('applies stored theme %s before rendering the app', (saved, systemDark, expected) => {
+  localStorage.setItem('kekkai.theme', saved)
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: systemDark }))
+  const meta = document.createElement('meta')
+  meta.name = 'theme-color'
+  document.head.append(meta)
+  try {
+    const bootstrap = html.match(/<script>([\s\S]*?)<\/script>/)![1]
+    new Function('document', 'localStorage', 'matchMedia', bootstrap)(
+      document, localStorage, matchMedia,
+    )
+    expect(document.documentElement.dataset.theme).toBe(expected)
+    expect(meta.content).toBe(expected === 'dark' ? '#111315' : '#fafafa')
+    render(<App />)
+    expect(document.documentElement.dataset.theme).toBe(expected)
+  } finally {
+    meta.remove()
+  }
+})
 
 test('workspace header follows navigation and keeps backups available in feed views', async () => {
   render(<App />)
@@ -144,6 +219,81 @@ test('captures tasks, completes them with Space, and restores them after reload'
   expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).items[0]).toMatchObject(
     { title: 'Sketch a calmer homepage', done: true },
   )
+})
+
+test('clears only completed tasks, supports Undo, and persists after reload', async () => {
+  const items = [
+    {
+      id: 'done-one', kind: 'task', title: 'First finished task',
+      date: localDate(), done: true, notes: 'Keep these notes',
+    },
+    {
+      id: 'done-two', kind: 'task', title: 'Second finished task',
+      date: null, done: true, notes: '',
+    },
+    {
+      id: 'open-task', kind: 'task', title: 'Still working',
+      date: null, done: false, notes: '',
+    },
+    {
+      id: 'done-deadline', kind: 'deadline', title: 'Finished deadline',
+      date: localDate(), done: true, notes: '',
+    },
+  ]
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ ...emptyWorkspace, items, saved: [entry] }),
+  )
+  const view = render(<App />)
+  const user = userEvent.setup()
+  const clear = screen.getByRole('button', { name: 'Clear completed' })
+  await act(async () => {
+    const result = await agent.act({
+      steps: [{ ref: 'Clear completed', action: 'press' }],
+    })
+    expect(result.ok).toBe(false)
+  })
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).items).toEqual(items)
+  await user.click(screen.getByRole('radio', { name: 'Completed' }))
+  clear.focus()
+  await user.keyboard(' ')
+  let stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
+  expect(stored.items).toEqual(items.slice(2))
+  expect(stored.saved).toEqual([entry])
+  expect(screen.getByText('2 completed tasks cleared')).toBeTruthy()
+  expect(clear.getAttribute('aria-disabled')).toBe('true')
+  expect(document.activeElement).toBe(clear)
+  await quickTask('Added after clearing')
+  await user.click(screen.getByRole('button', { name: 'Undo' }))
+  stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
+  expect(stored.items).toHaveLength(5)
+  for (const item of items)
+    expect(
+      stored.items.find((existing: { id: string }) => existing.id === item.id),
+    ).toEqual(item)
+  await user.click(clear)
+  view.unmount()
+  render(<App />)
+  await user.click(screen.getByRole('radio', { name: 'Completed' }))
+  expect(screen.getByText('No completed tasks.')).toBeTruthy()
+  stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
+  expect(stored.items).toHaveLength(3)
+  expect(
+    stored.items.some((item: { id: string }) => item.id === 'done-deadline'),
+  ).toBe(true)
+  expect(
+    screen.getByRole('button', { name: 'Clear completed' })
+      .getAttribute('aria-disabled'),
+  ).toBe('true')
+})
+
+test('Clear completed is unavailable when there are no completed tasks', async () => {
+  render(<App />)
+  const clear = screen.getByRole('button', { name: 'Clear completed' })
+  expect(clear.getAttribute('aria-disabled')).toBe('true')
+  await userEvent.setup().click(clear)
+  expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull()
+  expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
 })
 
 test('adds a deadline for the selected day, edits it, and deletes with undo', async () => {

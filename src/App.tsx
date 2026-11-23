@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@ui-sdk/react/button'
+import { Toggle } from '@ui-sdk/react/toggle'
 import { Github } from './components/github-icon'
 import { createAgent, registerTools } from '@ui-sdk/react/agent'
 import {
@@ -8,6 +9,7 @@ import {
   CircleAlert,
   HardDrive,
   LayoutGrid,
+  Moon,
   Plus,
   RotateCcw,
   X,
@@ -39,6 +41,15 @@ const agent = createAgent()
 
 export default function App() {
   const { data, update, error, recovery } = useWorkspace()
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const saved = localStorage.getItem('kekkai.theme')
+      if (saved === 'light' || saved === 'dark') return saved
+    } catch {}
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+  })
   const [view, setView] = useState<View>('overview')
   const [selected, setSelected] = useState(localDate)
   const [month, setMonth] = useState(() => localDate().slice(0, 7))
@@ -49,7 +60,7 @@ export default function App() {
     (Partial<PlanningItem> & { kind: PlanningItem['kind'] }) | null
   >(null)
   const [backupOpen, setBackupOpen] = useState(false)
-  const [deleted, setDeleted] = useState<PlanningItem | null>(null)
+  const [deleted, setDeleted] = useState<PlanningItem[] | null>(null)
   const [notice, setNotice] = useState('')
   const today = localDate()
   const planning = view === 'overview'
@@ -63,6 +74,13 @@ export default function App() {
   )
 
   useEffect(() => registerTools(agent, { allow: (step) => !step.confirm }), [])
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'dark' ? '#111315' : '#fafafa',
+    )
+  }, [theme])
   useEffect(() => {
     if (!notice) return
     const timeout = setTimeout(() => setNotice(''), 3500)
@@ -82,6 +100,13 @@ export default function App() {
       setNotice(`${item.kind === 'deadline' ? 'Deadline' : 'Task'} saved`)
     return accepted
   }
+  function changeTheme(dark: boolean) {
+    const next = dark ? 'dark' : 'light'
+    setTheme(next)
+    try {
+      localStorage.setItem('kekkai.theme', next)
+    } catch {}
+  }
   function toggleItem(id: string, done: boolean) {
     update((workspace) => ({
       ...workspace,
@@ -91,11 +116,22 @@ export default function App() {
     }))
   }
   function deleteItem(item: PlanningItem) {
-    update((workspace) => ({
+    const accepted = update((workspace) => ({
       ...workspace,
       items: workspace.items.filter((existing) => existing.id !== item.id),
     }))
-    setDeleted(item)
+    if (accepted) setDeleted([item])
+  }
+  function clearCompletedTasks() {
+    const completed = data.items.filter(
+      (item) => item.kind === 'task' && item.done,
+    )
+    if (!completed.length) return
+    const accepted = update((workspace) => ({
+      ...workspace,
+      items: workspace.items.filter((item) => item.kind !== 'task' || !item.done),
+    }))
+    if (accepted) setDeleted(completed)
   }
   function saveEntry(entry: FeedEntry) {
     const wasSaved = data.saved.some((existing) => existing.id === entry.id)
@@ -182,6 +218,7 @@ export default function App() {
       onNew={newTask}
       onEdit={openEditor}
       onToggle={toggleItem}
+      onClearCompleted={clearCompletedTasks}
     />
   )
 
@@ -254,25 +291,19 @@ export default function App() {
                   })}
                 </time>
               </div>
-              <div
-                className="heading-actions"
-                data-planning={planning ? '' : undefined}
-              >
-                {planning && (
-                  <>
-                    <Button
-                      className="button secondary"
-                      onClick={() => newDeadline(selected)}
-                    >
-                      <CalendarDays size={15} />
-                      Add deadline
-                    </Button>
-                    <Button className="button primary" onClick={newTask}>
-                      <Plus size={16} />
-                      New task
-                    </Button>
-                  </>
-                )}
+              <div className="header-tools">
+                <Toggle
+                  className="icon-button theme-toggle"
+                  aria-label="Night mode"
+                  title="Night mode"
+                  pressed={theme === 'dark'}
+                  onPressedChange={changeTheme}
+                >
+                  <Moon
+                    size={18}
+                    fill={theme === 'dark' ? 'currentColor' : 'none'}
+                  />
+                </Toggle>
                 <Button
                   className="icon-button header-backup"
                   aria-label="Open workspace backups"
@@ -282,6 +313,21 @@ export default function App() {
                   <HardDrive size={18} />
                 </Button>
               </div>
+              {planning && (
+                <div className="heading-actions" data-planning="">
+                  <Button
+                    className="button secondary"
+                    onClick={() => newDeadline(selected)}
+                  >
+                    <CalendarDays size={15} />
+                    Add deadline
+                  </Button>
+                  <Button className="button primary" onClick={newTask}>
+                    <Plus size={16} />
+                    New task
+                  </Button>
+                </div>
+              )}
             </div>
             {planning && (upcoming.length > 0 || overdue.length > 0) && (
               <div className="day-summary">
@@ -348,20 +394,18 @@ export default function App() {
       )}
       {deleted && (
         <div className="undo-toast" role="status">
-          <span>“{deleted.title}” deleted</span>
+          <span>
+            {deleted.length === 1
+              ? `“${deleted[0].title}” deleted`
+              : `${deleted.length} completed tasks cleared`}
+          </span>
           <Button
             className="button ghost small"
             onClick={() => {
-              const item = deleted
-              update((workspace) => ({
-                ...workspace,
-                items: workspace.items.some(
-                  (existing) => existing.id === item.id,
-                )
-                  ? workspace.items
-                  : [...workspace.items, item],
-              }))
-              setDeleted(null)
+              const accepted = update((workspace) =>
+                mergeBackup(workspace, { version: 1, items: deleted, saved: [] }),
+              )
+              if (accepted) setDeleted(null)
             }}
           >
             <RotateCcw size={13} />

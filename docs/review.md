@@ -43,3 +43,14 @@ Reviewed the changes against `d755e95`. The layout now uses one workspace header
 - `npm run lint` and `git diff --check`: exit 0.
 
 Visual verification was unavailable: the native browser host could not connect. Responsive wrapping and spacing were reviewed in CSS, but desktop/mobile appearance and painted contrast were not checked in a browser for this revision. No dependencies or storage schema changes.
+
+## Night mode and task cleanup
+
+Reviewed the changes against `7d7e1d4`, including the previously completed task-input icon fix and Clear completed action. The theme uses explicit light/dark semantic colors rather than a page inversion filter. Header tools stay separate from creation actions, and the calendar selection uses a muted light fill with dark text at night. Popups, forms, status colors, focus rings, and toasts use the same theme tokens.
+
+- `npm test`: exit 0; 45 tests across five files, including initial system theme, persistent manual choices, pre-render theme application, keyboard/agent toggling, blocked storage, and completed-task clearing/Undo.
+- `npm run build`, `npm run lint`, and `git diff --check`: exit 0.
+- A token-reference self-check passed. Calculated night text contrast exceeds 4.5:1 for the checked body, muted, accent, warning, danger, primary, checked, and selected-calendar pairs; input/calendar edges exceed 3:1. These calculations check declared colors, not every painted state.
+- Native Chrome showed the desktop night palette with the calendar, tasks, and live feed. Mobile, popup transitions, and other browsers were not visually rechecked after Chrome switched away from the preview.
+
+No new dependencies or workspace schema changes. Theme preference is browser-local; when storage is blocked, switching still works for the current session.

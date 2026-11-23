@@ -27,9 +27,17 @@ type Props = {
   onNew: () => void
   onEdit: (item: PlanningItem) => void
   onToggle: (id: string, done: boolean) => void
+  onClearCompleted: () => void
 }
 
-export function TasksPanel({ items, onAdd, onNew, onEdit, onToggle }: Props) {
+export function TasksPanel({
+  items,
+  onAdd,
+  onNew,
+  onEdit,
+  onToggle,
+  onClearCompleted,
+}: Props) {
   const [title, setTitle] = useState('')
   const [filter, setFilter] = useState('open')
   const tasks = items.filter((item) => item.kind === 'task')
@@ -81,7 +89,6 @@ export function TasksPanel({ items, onAdd, onNew, onEdit, onToggle }: Props) {
           <SegmentedControlItem value="done">Completed</SegmentedControlItem>
         </SegmentedControl>
         <form className="quick-task" onSubmit={submit}>
-          <Plus size={17} />
           <Input
             aria-label="Quick task title"
             placeholder="Add a task…"
@@ -175,6 +182,15 @@ export function TasksPanel({ items, onAdd, onNew, onEdit, onToggle }: Props) {
             <ProgressIndicator />
           </ProgressTrack>
         </Progress>
+        <Button
+          className="button ghost small clear-completed"
+          disabled={completed === 0}
+          focusableWhenDisabled
+          data-agent-confirm="Deletes all completed tasks."
+          onClick={onClearCompleted}
+        >
+          Clear completed
+        </Button>
       </footer>
     </section>
   )

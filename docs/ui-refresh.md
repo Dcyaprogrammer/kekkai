@@ -13,3 +13,9 @@ Font references: [Vercel Geist](https://vercel.com/font) and [shadcn typography]
 Use one compact header for the current view, date, relevant creation actions, and backups. Keep the next deadline and overdue count when present; omit empty summaries and repeated task counts. Overview contains both the calendar and task list, with no separate calendar or task pages. Creation actions appear on Overview, while backups stay available in every view, including mobile. Keep the calendar/task columns and existing calendar interactions.
 
 Navigation contains only Overview and GitHub Trending; there is no separate Saved page. Bookmark state remains on feed cards and in local workspace data/backups. Each feed has one toolbar with its source title, period selector, refresh, and source link. Remove decorative slogans, repeated descriptions, and the page footer. Empty states state what is missing; retain useful recovery instructions and storage warnings.
+
+## Night mode
+
+Use separate semantic colors for page, panels, raised popups, text, borders, focus, and status messages. The night palette uses charcoal surfaces and soft gray text, with restrained lavender accents. Selected calendar cells use a muted silver fill with dark text; retain readable selection and focus in each theme. Source language colors keep their meaning.
+
+A named ui-sdk toggle in the header switches themes. Default to the initial system preference, persist an explicit choice separately from workspace data, and apply it before the app paints. Theme changes must remain usable when storage is blocked. Keep the header tools reachable on narrow screens and avoid adding a dependency.

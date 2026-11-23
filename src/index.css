@@ -2,28 +2,72 @@
 
 :root {
   font-family: 'Geist Variable', 'Geist', sans-serif;
-  color: #27272a;
-  background: #fafafa;
+  color: var(--text);
+  background: var(--canvas);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color-scheme: light;
-  --ui-background: #ffffff;
-  --ui-foreground: #18181b;
-  --ui-muted: #f4f4f5;
-  --ui-muted-foreground: #71717a;
-  --ui-primary: #18181b;
-  --ui-primary-foreground: #ffffff;
-  --ui-ring: #52525b;
-  --ui-ring-border: #52525b;
-  --ui-border: #e4e4e7;
-  --ui-input: #a1a1aa;
+  color-scheme: light dark;
+  --canvas: light-dark(#fafafa, #111315);
+  --sidebar: light-dark(#fbfbfb, #15181b);
+  --surface: light-dark(#ffffff, #1a1d21);
+  --surface-raised: light-dark(#ffffff, #20242a);
+  --surface-muted: light-dark(#f4f4f6, #22262b);
+  --hover: light-dark(#f0f0f2, #2a3038);
+  --text-strong: light-dark(#18181b, #f2f3f5);
+  --text: light-dark(#27272a, #e5e7eb);
+  --text-secondary: light-dark(#52525b, #c3c7ce);
+  --text-muted: light-dark(#686872, #a8b0bc);
+  --border: light-dark(#e4e4e7, #3a424d);
+  --border-subtle: light-dark(#ededf0, #2d333c);
+  --control-border: light-dark(#8f8f9a, #75808f);
+  --calendar-border: light-dark(#dedee3, #626e7e);
+  --calendar-selected: light-dark(#242427, #cbd3de);
+  --on-calendar-selected: light-dark(#ffffff, #17202a);
+  --calendar-outside: light-dark(#73737b, #96a1b0);
+  --primary: light-dark(#242427, #dce2eb);
+  --primary-hover: light-dark(#3f3f46, #f0f3f7);
+  --on-primary: light-dark(#ffffff, #161a20);
+  --checked: light-dark(#777080, #b6a6cd);
+  --on-checked: light-dark(#ffffff, #1b1722);
+  --focus: light-dark(#52525b, #bac6d8);
+  --focus-halo: light-dark(#f3eff9, #303c4c);
+  --accent: light-dark(#76509b, #c2b4dc);
+  --accent-surface: light-dark(#f1eef6, #292736);
+  --accent-border: light-dark(#e4dfee, #554c68);
+  --positive: light-dark(#3c7052, #8cc8aa);
+  --warning: light-dark(#8b5a12, #e4be7d);
+  --warning-surface: light-dark(#fff9eb, #2a241b);
+  --warning-border: light-dark(#f0dfb6, #665137);
+  --danger: light-dark(#b42332, #f1949e);
+  --danger-surface: light-dark(#fff1f2, #352329);
+  --toast: light-dark(#27272a, #2b323b);
+  --on-toast: #f4f4f5;
+  --overlay: light-dark(#18181b45, #00000080);
+  --ui-background: var(--surface);
+  --ui-foreground: var(--text);
+  --ui-muted: var(--surface-muted);
+  --ui-muted-foreground: var(--text-muted);
+  --ui-primary: var(--primary);
+  --ui-primary-foreground: var(--on-primary);
+  --ui-ring: var(--focus);
+  --ui-ring-border: var(--focus);
+  --ui-border: var(--border);
+  --ui-input: var(--control-border);
+  --ui-destructive: var(--danger);
+  --ui-overlay: var(--overlay);
   --ui-radius: 6px;
   --ui-font-sans: 'Geist Variable', 'Geist', sans-serif;
   --ui-font-size: 15px;
   --ui-spacing: 4px;
   font-size: 16px;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 * {
   box-sizing: border-box;
@@ -68,11 +112,11 @@ textarea,
   outline-offset: 4px;
 }
 :focus-visible {
-  outline: 2px solid #52525b;
+  outline: 2px solid var(--focus);
 }
 ::selection {
-  background: #e4e4e7;
-  color: #18181b;
+  background: var(--calendar-selected);
+  color: var(--on-calendar-selected);
 }
 svg {
   flex-shrink: 0;
@@ -86,8 +130,8 @@ a svg {
   top: 8px;
   left: 8px;
   z-index: 999;
-  background: white;
-  border: 1px solid #71717a;
+  background: var(--surface-raised);
+  border: 1px solid var(--control-border);
   padding: 12px;
   border-radius: 6px;
   transform: translateY(-150%);
