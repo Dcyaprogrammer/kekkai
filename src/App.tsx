@@ -229,17 +229,7 @@ export default function App() {
       </a>
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M6 5v14M18 5l-9 7 9 7M6 12h3"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
+          <span className="brand-mark" aria-hidden="true" />
           <span>
             kekkai<span className="brand-period">.</span>
           </span>

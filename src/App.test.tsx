@@ -26,6 +26,7 @@ const feed = {
 }
 
 beforeEach(() => {
+  vi.setSystemTime(new Date('2026-11-16T12:00:00'))
   localStorage.clear()
   delete document.documentElement.dataset.theme
   vi.stubGlobal(
@@ -42,7 +43,10 @@ beforeEach(() => {
     ),
   )
 })
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllGlobals()
+})
 
 async function quickTask(title: string) {
   const user = userEvent.setup()

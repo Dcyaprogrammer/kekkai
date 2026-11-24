@@ -23,17 +23,11 @@
   color: var(--text-strong);
 }
 .brand-mark {
-  height: 28px;
-  width: 28px;
-  display: grid;
-  place-items: center;
-  background: var(--primary);
-  color: var(--on-primary);
-  border-radius: 8px;
-}
-.brand-mark svg {
-  height: 22px;
-  width: 22px;
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0;
+  background: currentColor;
+  mask: url('/favicon.svg') center / contain no-repeat;
 }
 .brand-period {
   color: var(--accent);
@@ -1386,13 +1380,8 @@ h1 {
     gap: 8px;
   }
   .brand-mark {
-    width: 25px;
-    height: 25px;
-    border-radius: 7px;
-  }
-  .brand-mark svg {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
   }
   .sidebar-bottom,
   .nav-label {
