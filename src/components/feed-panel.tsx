@@ -7,10 +7,17 @@ import {
 } from '@ui-sdk/react/segmented-control'
 import { Toggle } from '@ui-sdk/react/toggle'
 import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from '@ui-sdk/react/collapsible'
+import {
   ArrowDownToLine,
   ArrowUpRight,
   Bookmark,
   CircleAlert,
+  Eye,
+  EyeOff,
   GitFork,
   RefreshCw,
   Rss,
@@ -79,7 +86,9 @@ function RepositoryCard({
         </span>
         <ArrowUpRight size={15} />
       </Button>
-      {entry.description && <p className="repo-description">{entry.description}</p>}
+      {entry.description && (
+        <p className="repo-description">{entry.description}</p>
+      )}
       <div className="repo-meta">
         {entry.language && (
           <span>
@@ -124,6 +133,14 @@ export function FeedPanel({
   limit,
   onSeeAll,
 }: Props) {
+  const visibilityKey = `kekkai.feed.${source.id}.visible`
+  const [visible, setVisible] = useState(() => {
+    try {
+      return localStorage.getItem(visibilityKey) !== 'false'
+    } catch {
+      return true
+    }
+  })
   const [period, setPeriod] = useState<FeedResult['period']>('daily')
   const [responseState, setResponseState] = useState<{
     key: string
@@ -138,6 +155,7 @@ export function FeedPanel({
   const loading = !current
 
   useEffect(() => {
+    if (!visible) return
     const controller = new AbortController()
     async function load() {
       try {
@@ -171,12 +189,21 @@ export function FeedPanel({
     }
     void load()
     return () => controller.abort()
-  }, [period, requestKey, source.id, source.name])
+  }, [period, requestKey, source.id, source.name, visible])
 
   const entries = result?.entries ?? []
   return (
     <section className="feed-section" aria-labelledby="feeds-title">
-      <div className="feed-container">
+      <Collapsible
+        className="feed-container"
+        open={visible}
+        onOpenChange={(open) => {
+          setVisible(open)
+          try {
+            localStorage.setItem(visibilityKey, String(open))
+          } catch {}
+        }}
+      >
         <div className="feed-toolbar">
           <div className="feed-source">
             {source.id === 'github-trending' ? (
@@ -185,122 +212,138 @@ export function FeedPanel({
               <Rss size={19} />
             )}
             <h2 id="feeds-title">{source.name}</h2>
+            <CollapsibleTrigger
+              className="button ghost small feed-visibility"
+              aria-label={`${source.name} visibility`}
+              title={`${visible ? 'Hide' : 'Show'} ${source.name}`}
+            >
+              {visible ? <Eye size={15} /> : <EyeOff size={15} />}
+              {visible ? 'Visible' : 'Hidden'}
+            </CollapsibleTrigger>
           </div>
-          <div className="feed-controls">
-            {source.periods.length > 0 && (
-              <SegmentedControl
-                aria-label="Trending period"
-                className="segments compact"
-                value={period}
-                onValueChange={(value) => {
-                  if (value === 'daily' || value === 'weekly')
-                    setPeriod(value)
-                }}
+          {visible && (
+            <div className="feed-controls">
+              {source.periods.length > 0 && (
+                <SegmentedControl
+                  aria-label="Trending period"
+                  className="segments compact"
+                  value={period}
+                  onValueChange={(value) => {
+                    if (value === 'daily' || value === 'weekly')
+                      setPeriod(value)
+                  }}
+                >
+                  {source.periods.map((option) => (
+                    <SegmentedControlItem
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </SegmentedControlItem>
+                  ))}
+                </SegmentedControl>
+              )}
+              <Button
+                className={`icon-button${loading ? ' spinning' : ''}`}
+                aria-label={`Refresh ${source.name}`}
+                disabled={loading}
+                onClick={() => setRefresh((value) => value + 1)}
               >
-                {source.periods.map((option) => (
-                  <SegmentedControlItem
-                    key={option.value}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </SegmentedControlItem>
-                ))}
-              </SegmentedControl>
-            )}
-            <Button
-              className={`icon-button${loading ? ' spinning' : ''}`}
-              aria-label={`Refresh ${source.name}`}
-              disabled={loading}
-              onClick={() => setRefresh((value) => value + 1)}
-            >
-              <RefreshCw size={15} />
-            </Button>
-            <Button
-              className="icon-button"
-              aria-label={source.linkLabel}
-              title={source.linkLabel}
-              render={
-                <a href={source.url} target="_blank" rel="noopener noreferrer" />
-              }
-            >
-              <ArrowUpRight size={17} />
-            </Button>
-          </div>
-        </div>
-        {result?.stale && (
-          <div className="feed-warning" role="status">
-            <CircleAlert size={15} />
-            {source.name} is unavailable. Showing the last successful update.
-          </div>
-        )}
-        {loading ? (
-          <div
-            className="repository-grid"
-            aria-label={`Loading ${source.name}`}
-            aria-busy="true"
-          >
-            {Array.from({ length: 6 }, (_, index) => (
-              <div className="repository-card skeleton-card" key={index}>
-                <span />
-                <span />
-                <span />
-                <span />
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="feed-empty">
-            <CircleAlert size={25} />
-            <h3>Feed unavailable</h3>
-            <p>{error}</p>
-            <Button
-              className="button secondary small"
-              onClick={() => setRefresh((value) => value + 1)}
-            >
-              <RefreshCw size={14} />
-              Try again
-            </Button>
-          </div>
-        ) : entries.length ? (
-          <div className="repository-grid">
-            {entries.slice(0, limit).map((entry) => (
-              <RepositoryCard
-                key={entry.id}
-                entry={entry}
-                saved={saved.some((item) => item.id === entry.id)}
-                onSave={onSave}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="feed-empty">
-            <ArrowDownToLine size={25} />
-            <h3>No items</h3>
-            <p>Refresh or open the source.</p>
-          </div>
-        )}
-        <footer className="feed-footer">
-          <span>
-            <span className={`status-dot${error ? ' status-error' : ''}`} />
-            {result
-              ? `${result.stale ? 'Last fetched' : 'Fetched'} ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(result.fetchedAt))}`
-              : loading
-                ? 'Finding what’s trending…'
-                : 'Source temporarily unavailable'}
-          </span>
-          {limit && entries.length > limit && onSeeAll ? (
-            <Button className="button ghost small" onClick={onSeeAll}>
-              View all {entries.length}
-              <ArrowUpRight size={12} />
-            </Button>
-          ) : (
-            <span>
-              {source.id === 'github-trending' &&
-                `Stars gained ${period === 'daily' ? 'today' : 'this week'}`}
-            </span>
+                <RefreshCw size={15} />
+              </Button>
+              <Button
+                className="icon-button"
+                aria-label={source.linkLabel}
+                title={source.linkLabel}
+                render={
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                }
+              >
+                <ArrowUpRight size={17} />
+              </Button>
+            </div>
           )}
-        </footer>
-      </div>
+        </div>
+        <CollapsiblePanel className="feed-content">
+          {result?.stale && (
+            <div className="feed-warning" role="status">
+              <CircleAlert size={15} />
+              {source.name} is unavailable. Showing the last successful update.
+            </div>
+          )}
+          {loading ? (
+            <div
+              className="repository-grid"
+              aria-label={`Loading ${source.name}`}
+              aria-busy="true"
+            >
+              {Array.from({ length: 6 }, (_, index) => (
+                <div className="repository-card skeleton-card" key={index}>
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="feed-empty">
+              <CircleAlert size={25} />
+              <h3>Feed unavailable</h3>
+              <p>{error}</p>
+              <Button
+                className="button secondary small"
+                onClick={() => setRefresh((value) => value + 1)}
+              >
+                <RefreshCw size={14} />
+                Try again
+              </Button>
+            </div>
+          ) : entries.length ? (
+            <div className="repository-grid">
+              {entries.slice(0, limit).map((entry) => (
+                <RepositoryCard
+                  key={entry.id}
+                  entry={entry}
+                  saved={saved.some((item) => item.id === entry.id)}
+                  onSave={onSave}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="feed-empty">
+              <ArrowDownToLine size={25} />
+              <h3>No items</h3>
+              <p>Refresh or open the source.</p>
+            </div>
+          )}
+          <footer className="feed-footer">
+            <span>
+              <span className={`status-dot${error ? ' status-error' : ''}`} />
+              {result
+                ? `${result.stale ? 'Last fetched' : 'Fetched'} ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(result.fetchedAt))}`
+                : loading
+                  ? 'Finding what’s trending…'
+                  : 'Source temporarily unavailable'}
+            </span>
+            {limit && entries.length > limit && onSeeAll ? (
+              <Button className="button ghost small" onClick={onSeeAll}>
+                View all {entries.length}
+                <ArrowUpRight size={12} />
+              </Button>
+            ) : (
+              <span>
+                {source.id === 'github-trending' &&
+                  `Stars gained ${period === 'daily' ? 'today' : 'this week'}`}
+              </span>
+            )}
+          </footer>
+        </CollapsiblePanel>
+      </Collapsible>
     </section>
   )
 }

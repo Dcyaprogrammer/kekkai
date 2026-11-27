@@ -32,6 +32,8 @@ Typography uses locally served Geist Sans with a larger, consistent text scale. 
 
 Use the moon button in the header to toggle **Night mode**. The first visit uses your system preference; a manual choice is remembered on this browser. Night mode uses charcoal surfaces, soft text, and muted light calendar selections. The saved theme is applied before the app renders.
 
+Use **Visible / Hidden** beside the GitHub Trending heading to collapse or reopen the feed. Only the compact heading remains when hidden, and feed requests pause. This preference is remembered on this browser.
+
 The two views are Overview, containing both the calendar and to-do list, and GitHub Trending. The compact header keeps the current view, date, and planning actions together. Next-deadline and overdue status appear only when relevant. The storage icon opens backups on every screen, including mobile. Feed controls and the original source link share a single toolbar.
 
 With Supabase configured, planning data and saved entries belong to your signed-in account and save online automatically. Account-scoped local caches keep pending edits during connection failures; conflicting edits from other tabs or devices are rejected with a recovery option. Refresh another device to load the latest version. Without Supabase, data stays in this browser, and concurrent tabs use the last local save.

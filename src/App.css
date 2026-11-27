@@ -897,6 +897,21 @@ h1 {
   align-items: center;
   gap: 12px;
 }
+.feed-container[data-closed] .feed-toolbar {
+  border-bottom-color: transparent;
+}
+.feed-visibility {
+  flex-shrink: 0;
+}
+.feed-content {
+  color: var(--text);
+  height: var(--collapsible-panel-height);
+  overflow: hidden;
+  transition: height 0.18s ease-out;
+}
+.feed-content:is([data-starting-style], [data-ending-style]) {
+  height: 0;
+}
 .segments.compact {
   padding: 2px;
 }

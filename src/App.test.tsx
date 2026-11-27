@@ -54,6 +54,32 @@ async function quickTask(title: string) {
   return user
 }
 
+test('hiding Trending keeps planning available and the choice follows feed navigation', async () => {
+  render(<App />)
+  await screen.findByRole('button', { name: 'Save acme/atlas' })
+  const user = userEvent.setup()
+  await user.click(
+    screen.getByRole('button', { name: 'GitHub Trending visibility' }),
+  )
+  expect(screen.getByLabelText('Deadline calendar')).toBeTruthy()
+  expect(screen.getByLabelText('Quick task title')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Save acme/atlas' })).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'GitHub Trending' }))
+  expect(
+    screen.getByRole('button', { name: 'GitHub Trending visibility' })
+      .getAttribute('aria-expanded'),
+  ).toBe('false')
+  await user.click(
+    screen.getByRole('button', { name: 'GitHub Trending visibility' }),
+  )
+  await screen.findByRole('button', { name: 'Save acme/atlas' })
+  await user.click(screen.getByRole('button', { name: 'Overview' }))
+  expect(
+    screen.getByRole('button', { name: 'GitHub Trending visibility' })
+      .getAttribute('aria-expanded'),
+  ).toBe('true')
+})
+
 test('night mode follows the initial system preference and remembers keyboard changes', async () => {
   vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }))
   const view = render(<App />)
