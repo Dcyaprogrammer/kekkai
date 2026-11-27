@@ -2,6 +2,8 @@
 
 A personal feedspace for deadlines, tasks, and discoveries. React 19 + Vite + ui-sdk, with a restrained shadcn-inspired visual style.
 
+Production: [kekkai-psi.vercel.app](https://kekkai-psi.vercel.app).
+
 ```sh
 npm install
 npm run dev
