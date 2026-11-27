@@ -63,10 +63,10 @@ Added GitHub login, private account workspaces, revision-checked cloud saves, ac
 - TypeScript/build, lint, and whitespace checks pass. Cloud builds reject missing/partial settings, secret keys, and non-HTTPS URLs. Vite reports a bundle-size advisory for the configured cloud build (about 689 kB minified / 212 kB gzipped).
 - The migration and SQL assertions passed in embedded PostgreSQL (PGlite), then on the hosted Supabase project. Checked anonymous denial, RLS isolation, valid saves, revision conflicts, expected-account binding, and malformed JSON. The migration is applied, and the hosted REST API rejects anonymous reads and saves with HTTP 401. Real GitHub sign-in still awaits provider setup.
 - Five deliberate mutations were caught: disconnected login handler, missing account remount, disabled RLS, missing revision check, and missing expected-account check. Mutations ran in temporary copies/databases; repository source was not changed.
-- Native Chrome showed the signed-out page with visible keyboard focus on the GitHub button. The signed-in interactions use mocked auth/storage in tests; real OAuth and hosted persistence await account configuration.
+- Native Chrome showed the signed-out page with visible keyboard focus on the GitHub button. After correcting the provider credentials, a real GitHub OAuth round trip returned to the production workspace with **Saved online**. A temporary task was saved, recovered after a full page reload, then removed with the online save confirmed.
 - Production deployment is ready at [kekkai-psi.vercel.app](https://kekkai-psi.vercel.app). Unauthenticated HTTP checks returned 200 for the page and the feed endpoint; the latter returned 16 real Trending repositories. Vercel is connected to the GitHub repository for subsequent deployments. Hosted SQL checks left no test users behind; row-level security and all three policies are active.
 
-Not verified: a real GitHub OAuth round trip, mobile login rendering, or another browser. Workspaces load on opening/refreshing; real-time updates and durable feed caching are not included. Browser recovery caches remain after sign-out.
+Not verified: mobile login rendering or another browser. Workspaces load on opening/refreshing; real-time updates and durable feed caching are not included. Browser recovery caches remain after sign-out.
 
 ## OAuth callback errors
 
