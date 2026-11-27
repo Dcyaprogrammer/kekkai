@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createAgent, registerTools } from '@ui-sdk/react/agent'
 import type { Session } from '@supabase/supabase-js'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { AccountGate } from './account-gate'
 
 const auth = vi.hoisted(() => ({
@@ -16,6 +16,7 @@ let emit: (event: string, session: Session | null) => void
 const alice = { user: { id: 'alice' } } as Session
 const bob = { user: { id: 'bob' } } as Session
 const agent = createAgent()
+afterEach(() => window.history.replaceState({}, '', '/'))
 
 beforeEach(() => {
   auth.getSession
@@ -91,6 +92,36 @@ test('failed login can be retried without losing the sign-in control', async () 
   })
   expect(auth.signInWithOAuth).toHaveBeenCalledTimes(2)
 })
+
+test.each([
+  '?error=server_error&error_description=Unable+to+exchange+external+code',
+  '#error=access_denied&error_description=Private+provider+details',
+])(
+  'shows callback failure %s even after the initial signed-out event',
+  async (callback) => {
+    window.history.replaceState({}, '', '/' + callback)
+    auth.getSession.mockResolvedValue({
+      data: { session: null },
+      error: new Error('Provider callback failed'),
+    })
+    render(<TestAccount />)
+    await screen.findByRole('button', { name: 'Continue with GitHub' })
+    act(() => emit('INITIAL_SESSION', null))
+    expect(screen.getByRole('alert').textContent).toBe(
+      'GitHub sign-in failed. Please try again.',
+    )
+    expect(
+      screen.queryByText(
+        /Private provider details|Unable to exchange external code/,
+      ),
+    ).toBeNull()
+    await userEvent
+      .setup()
+      .click(screen.getByRole('button', { name: 'Continue with GitHub' }))
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(auth.signInWithOAuth).toHaveBeenCalledTimes(1)
+  },
+)
 
 test('session changes replace the account workspace and signing out returns to login', async () => {
   auth.getSession.mockResolvedValue({ data: { session: alice }, error: null })

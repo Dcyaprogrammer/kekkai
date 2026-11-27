@@ -67,3 +67,10 @@ Added GitHub login, private account workspaces, revision-checked cloud saves, ac
 - Production deployment is ready at [kekkai-psi.vercel.app](https://kekkai-psi.vercel.app). Unauthenticated HTTP checks returned 200 for the page and the feed endpoint; the latter returned 16 real Trending repositories. Vercel is connected to the GitHub repository for subsequent deployments. Hosted SQL checks left no test users behind; row-level security and all three policies are active.
 
 Not verified: a real GitHub OAuth round trip, mobile login rendering, or another browser. Workspaces load on opening/refreshing; real-time updates and durable feed caching are not included. Browser recovery caches remain after sign-out.
+
+## OAuth callback errors
+
+Provider callback failures previously returned to the sign-in screen without a useful error. The page now reads the callback error from query/hash parameters, keeps the message through initial session restoration, and clears it when retrying or signing in. Provider details are not rendered.
+
+- The two callback regressions failed before the fix and pass afterward, including an initial signed-out event and session-restoration error.
+- `npm test`: exit 0; 71 tests across nine files. `npm run build`, `npm run lint`, and `git diff --check`: exit 0. The existing bundle-size advisory remains.

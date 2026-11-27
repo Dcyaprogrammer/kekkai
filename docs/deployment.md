@@ -46,6 +46,8 @@ Create a [GitHub OAuth App](https://github.com/settings/applications/new):
 
 Copy the Client ID and generate a Client Secret. Enter both directly into Supabase's GitHub provider settings, enable the provider, and save. The secret stays in Supabase and GitHub. [Supabase's GitHub setup guide](https://supabase.com/docs/guides/auth/social-sign-in/auth-github).
 
+Use the generated **Client ID** shown on the OAuth App settings page. If GitHub returns 404 during sign-in, check that field first. An `incorrect_client_credentials` error in Supabase's Auth logs means the Client ID / Client Secret pair does not match; copy both from the same GitHub OAuth App. Failed callbacks display a retry message on the sign-in page.
+
 ## 5. Allow the production redirect and verify
 
 In Supabase **Authentication → URL Configuration**:

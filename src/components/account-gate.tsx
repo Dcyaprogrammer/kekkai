@@ -12,7 +12,12 @@ export function AccountGate({
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(Boolean(supabase))
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(() =>
+    new URLSearchParams(window.location.search).has('error') ||
+    new URLSearchParams(window.location.hash.slice(1)).has('error')
+      ? 'GitHub sign-in failed. Please try again.'
+      : '',
+  )
 
   useEffect(() => {
     if (!supabase) return
@@ -20,12 +25,12 @@ export function AccountGate({
     let receivedEvent = false
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       receivedEvent = true
       if (!active) return
       setUser(session?.user ?? null)
       setLoading(false)
-      setError('')
+      if (session || event === 'SIGNED_OUT') setError('')
       setBusy(false)
     })
     void supabase.auth
@@ -35,12 +40,19 @@ export function AccountGate({
         setUser(data.session?.user ?? null)
         setLoading(false)
         if (error)
-          setError('Could not restore your session. Please sign in again.')
+          setError(
+            (previous) =>
+              previous ||
+              'Could not restore your session. Please sign in again.',
+          )
       })
       .catch(() => {
         if (!active || receivedEvent) return
         setLoading(false)
-        setError('Could not restore your session. Please sign in again.')
+        setError(
+          (previous) =>
+            previous || 'Could not restore your session. Please sign in again.',
+        )
       })
     return () => {
       active = false
