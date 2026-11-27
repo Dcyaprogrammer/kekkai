@@ -9,6 +9,8 @@ npm run dev
 
 Open the Local URL printed by Vite. Node 22.18 or newer is required.
 
+For friends to sign in and keep their data across devices, see [Vercel + Supabase setup](docs/deployment.md). Set the two values in `.env.example` in an ignored `.env.local` to enable GitHub login and account storage. With neither variable set, local development keeps using browser-only storage.
+
 ```sh
 npm test
 npm run lint
@@ -20,7 +22,7 @@ npm start
 
 ## Your workspace
 
-Select a date to open its attached agenda, then use **Add deadline**. The deadline form slides over the agenda; saving or cancelling returns to the day. Open a commitment to edit or delete it; deletion offers Undo. Capture tasks directly in the list, or use **New task** for dates and notes. The calendar's daily agenda includes both deadlines and dated tasks. Repository bookmarks are stored locally and marked on feed cards.
+Select a date to open its attached agenda, then use **Add deadline**. The deadline form slides over the agenda; saving or cancelling returns to the day. Open a commitment to edit or delete it; deletion offers Undo. Capture tasks directly in the list, or use **New task** for dates and notes. The calendar's daily agenda includes both deadlines and dated tasks. Repository bookmarks are kept in your workspace and marked on feed cards.
 
 Use **Clear completed** below the task progress bar to remove all completed tasks. Undo restores the cleared tasks; open tasks and deadlines are kept.
 
@@ -30,7 +32,9 @@ Use the moon button in the header to toggle **Night mode**. The first visit uses
 
 The two views are Overview, containing both the calendar and to-do list, and GitHub Trending. The compact header keeps the current view, date, and planning actions together. Next-deadline and overdue status appear only when relevant. The storage icon opens backups on every screen, including mobile. Feed controls and the original source link share a single toolbar.
 
-Planning data and saved entries live in this browser's local storage, with no account or synchronization. **Backups & storage** exports JSON and restores backups by merging missing records; existing local edits win. If stored data is unreadable, the original is retained as a recovery copy before any replacement. Storage failures leave changes in memory and show an export warning. Use one tab for editing: concurrent tabs use the last saved workspace. No notifications or time-of-day reminders are included.
+With Supabase configured, planning data and saved entries belong to your signed-in account and save online automatically. Account-scoped local caches keep pending edits during connection failures; conflicting edits from other tabs or devices are rejected with a recovery option. Refresh another device to load the latest version. Without Supabase, data stays in this browser, and concurrent tabs use the last local save.
+
+**Backups & storage** exports JSON and restores backups by merging missing records; existing edits win. Use it to transfer your old browser-only workspace into your account. Unreadable cache data is retained as a recovery copy before replacement. No notifications or time-of-day reminders are included.
 
 ## Feed providers
 

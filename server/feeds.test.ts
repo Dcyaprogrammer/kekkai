@@ -91,32 +91,55 @@ test('reports an upstream error and rejects unknown sources before fetching', as
   await expect(getFeed('github-trending', 'daily')).rejects.toThrow('429')
 })
 
-test('HTTP boundary rejects unknown sources, periods, methods, and malformed URLs', async () => {
-  const { createServer } = await import('node:http')
-  const { feedMiddleware } = await import('./feeds.ts')
-  const server = createServer((request, response) => {
-    void feedMiddleware(request, response, () => response.writeHead(404).end())
-  })
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-  const address = server.address()
-  if (!address || typeof address === 'string')
-    throw new Error('No server address')
-  const origin = `http://127.0.0.1:${address.port}`
-  try {
-    expect((await fetch(`${origin}/api/feeds/unknown`)).status).toBe(400)
-    expect(
-      (await fetch(`${origin}/api/feeds/github-trending?period=forever`))
-        .status,
-    ).toBe(400)
-    const post = await fetch(`${origin}/api/feeds/github-trending`, {
-      method: 'POST',
+test.each(['node', 'vercel'])(
+  '%s HTTP boundary rejects unknown sources, periods, methods, and malformed URLs',
+  async (runtime) => {
+    const { createServer } = await import('node:http')
+    const { feedMiddleware } = await import('./feeds.ts')
+    const { default: vercelHandler } = await import('../api/feeds/[source].ts')
+    const server = createServer((request, response) => {
+      if (runtime === 'vercel') void vercelHandler(request, response)
+      else
+        void feedMiddleware(request, response, () =>
+          response.writeHead(404).end(),
+        )
     })
-    expect(post.status).toBe(405)
-    expect(post.headers.get('allow')).toBe('GET')
-    expect((await fetch(`${origin}//`)).status).toBe(400)
-  } finally {
-    await new Promise<void>((resolve, reject) =>
-      server.close((error) => (error ? reject(error) : resolve())),
-    )
-  }
-})
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+    const address = server.address()
+    if (!address || typeof address === 'string')
+      throw new Error('No server address')
+    const origin = `http://127.0.0.1:${address.port}`
+    const request = globalThis.fetch
+    try {
+      expect((await fetch(`${origin}/api/feeds/unknown`)).status).toBe(400)
+      expect(
+        (await fetch(`${origin}/api/feeds/github-trending?period=forever`))
+          .status,
+      ).toBe(400)
+      const post = await fetch(`${origin}/api/feeds/github-trending`, {
+        method: 'POST',
+      })
+      expect(post.status).toBe(405)
+      expect(post.headers.get('allow')).toBe('GET')
+      expect((await fetch(`${origin}//`)).status).toBe(400)
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(html)))
+      const feed = await request(
+        `${origin}/api/feeds/github-trending?period=weekly`,
+      )
+      expect(feed.status).toBe(200)
+      expect(await feed.json()).toMatchObject({
+        source: 'github-trending',
+        period: 'weekly',
+        stale: false,
+        entries: [
+          expect.objectContaining({ title: 'owner/project' }),
+          expect.objectContaining({ title: 'another/tool' }),
+        ],
+      })
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      )
+    }
+  },
+)

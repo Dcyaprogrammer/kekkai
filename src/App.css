@@ -97,6 +97,14 @@
   color: var(--text-muted);
   font-size: 12px;
 }
+.cloud-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
 .status-dot {
   display: inline-block;
   flex: 0 0 5px;
@@ -1536,4 +1544,52 @@ h1 {
   .calendar-day .day-caption {
     font-size: 10px;
   }
+}
+.account-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 24px;
+}
+.account-card {
+  width: min(100%, 380px);
+}
+.account-card .brand {
+  margin-bottom: 48px;
+}
+.account-card h1 {
+  font-size: 30px;
+  font-weight: 550;
+  letter-spacing: -1px;
+  line-height: 1.2;
+}
+.account-card p {
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 16px 0 28px;
+}
+.account-card .account-sign-in {
+  width: 100%;
+  min-height: 44px;
+  font-size: 15px;
+}
+.account-note {
+  display: block;
+  margin-top: 16px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.account-error {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 500px);
+  padding: 16px;
+  background: var(--surface);
+  color: var(--danger);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  z-index: 100;
 }

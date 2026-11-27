@@ -10,6 +10,7 @@ import {
   HardDrive,
   LayoutGrid,
   Moon,
+  LogOut,
   Plus,
   RotateCcw,
   X,
@@ -23,6 +24,8 @@ import { FeedPanel } from './components/feed-panel'
 import { ItemDialog } from './components/item-dialog'
 import { TasksPanel } from './components/tasks-panel'
 import { useWorkspace } from './use-workspace'
+import { useCloudWorkspace } from './use-cloud-workspace'
+import { AccountGate } from './components/account-gate'
 import {
   formatDate,
   localDate,
@@ -40,7 +43,59 @@ const viewNames: Record<View, string> = {
 const agent = createAgent()
 
 export default function App() {
-  const { data, update, error, recovery } = useWorkspace()
+  useEffect(() => registerTools(agent, { allow: (step) => !step.confirm }), [])
+  return (
+    <AccountGate>
+      {(user, signOut) =>
+        user ? (
+          <CloudApp key={user.id} userId={user.id} signOut={signOut} />
+        ) : (
+          <LocalApp />
+        )
+      }
+    </AccountGate>
+  )
+}
+
+function LocalApp() {
+  return <WorkspaceApp workspace={useWorkspace()} />
+}
+
+function CloudApp({
+  userId,
+  signOut,
+}: {
+  userId: string
+  signOut?: () => Promise<void>
+}) {
+  const workspace = useCloudWorkspace(userId)
+  return (
+    <WorkspaceApp workspace={workspace} cloud={workspace} signOut={signOut} />
+  )
+}
+
+function WorkspaceApp({
+  workspace,
+  cloud,
+  signOut,
+}: {
+  workspace: ReturnType<typeof useWorkspace>
+  cloud?: ReturnType<typeof useCloudWorkspace>
+  signOut?: () => Promise<void>
+}) {
+  const { data, update, error, recovery } = workspace
+  const storageMessage = error
+    ? 'Storage needs attention'
+    : cloud
+      ? {
+          loading: 'Loading workspace…',
+          saving: 'Saving online…',
+          saved: 'Saved online',
+          error: 'Save needs attention',
+          conflict: 'Changed on another device',
+        }[cloud.status]
+      : 'Saved on this device'
+  const [signingOut, setSigningOut] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem('kekkai.theme')
@@ -73,13 +128,11 @@ export default function App() {
     (item) => item.date && item.date < today && !item.done,
   )
 
-  useEffect(() => registerTools(agent, { allow: (step) => !step.confirm }), [])
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    document.querySelector('meta[name="theme-color"]')?.setAttribute(
-      'content',
-      theme === 'dark' ? '#111315' : '#fafafa',
-    )
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme === 'dark' ? '#111315' : '#fafafa')
   }, [theme])
   useEffect(() => {
     if (!notice) return
@@ -96,7 +149,7 @@ export default function App() {
           )
         : [...workspace.items, item],
     }))
-    if (accepted)
+    if (accepted && !cloud)
       setNotice(`${item.kind === 'deadline' ? 'Deadline' : 'Task'} saved`)
     return accepted
   }
@@ -129,7 +182,9 @@ export default function App() {
     if (!completed.length) return
     const accepted = update((workspace) => ({
       ...workspace,
-      items: workspace.items.filter((item) => item.kind !== 'task' || !item.done),
+      items: workspace.items.filter(
+        (item) => item.kind !== 'task' || !item.done,
+      ),
     }))
     if (accepted) setDeleted(completed)
   }
@@ -261,10 +316,12 @@ export default function App() {
             <span>Backups & storage</span>
             <ArrowUpRight size={14} />
           </Button>
-          <div className="local-status">
-            <span className={`status-dot${error ? ' status-error' : ''}`} />
-            {error ? 'Storage needs attention' : 'Saved on this device'}
-          </div>
+          {!cloud && (
+            <div className="local-status">
+              <span className={`status-dot${error ? ' status-error' : ''}`} />
+              <span role="status">{storageMessage}</span>
+            </div>
+          )}
         </div>
       </aside>
       <div className="main-shell">
@@ -280,8 +337,36 @@ export default function App() {
                     day: 'numeric',
                   })}
                 </time>
+                {cloud && (
+                  <span className="cloud-status" role="status">
+                    <span
+                      className={`status-dot${error ? ' status-error' : ''}`}
+                      aria-hidden="true"
+                    />
+                    {storageMessage}
+                  </span>
+                )}
               </div>
               <div className="header-tools">
+                {signOut && (
+                  <Button
+                    className="icon-button"
+                    data-agent-confirm="Signs out of this browser's account"
+                    aria-label="Sign out"
+                    title="Sign out"
+                    disabled={signingOut}
+                    onClick={async () => {
+                      setSigningOut(true)
+                      try {
+                        await signOut()
+                      } finally {
+                        setSigningOut(false)
+                      }
+                    }}
+                  >
+                    <LogOut size={18} />
+                  </Button>
+                )}
                 <Toggle
                   className="icon-button theme-toggle"
                   aria-label="Night mode"
@@ -339,6 +424,28 @@ export default function App() {
             <div className="storage-warning" role="alert">
               <CircleAlert size={17} />
               <span>{error}</span>
+              {cloud && (
+                <Button
+                  className="button secondary small"
+                  data-agent-confirm={
+                    cloud.status === 'conflict'
+                      ? 'Replaces local edits with the online version after saving a recovery copy'
+                      : undefined
+                  }
+                  disabled={
+                    cloud.status === 'loading' || cloud.status === 'saving'
+                  }
+                  onClick={() => {
+                    void (cloud.status === 'conflict'
+                      ? cloud.loadOnline()
+                      : cloud.retry())
+                  }}
+                >
+                  {cloud.status === 'conflict'
+                    ? 'Load online version'
+                    : 'Retry'}
+                </Button>
+              )}
               <Button className="button secondary small" onClick={openBackup}>
                 Backups
               </Button>
@@ -376,6 +483,8 @@ export default function App() {
         <BackupDialog
           workspace={data}
           recovery={recovery}
+          cloud={Boolean(cloud)}
+          storageKey={cloud?.storageKey}
           onClose={closeBackup}
           onRestore={(backup) =>
             update((workspace) => mergeBackup(workspace, backup))
@@ -393,7 +502,11 @@ export default function App() {
             className="button ghost small"
             onClick={() => {
               const accepted = update((workspace) =>
-                mergeBackup(workspace, { version: 1, items: deleted, saved: [] }),
+                mergeBackup(workspace, {
+                  version: 1,
+                  items: deleted,
+                  saved: [],
+                }),
               )
               if (accepted) setDeleted(null)
             }}

@@ -54,3 +54,15 @@ Reviewed the changes against `7d7e1d4`, including the previously completed task-
 - Native Chrome showed the desktop night palette with the calendar, tasks, and live feed. Mobile, popup transitions, and other browsers were not visually rechecked after Chrome switched away from the preview.
 
 No new dependencies or workspace schema changes. Theme preference is browser-local; when storage is blocked, switching still works for the current session.
+
+## Vercel and Supabase setup
+
+Added GitHub login, private account workspaces, revision-checked cloud saves, account-scoped pending-edit caches and recovery, plus a Vercel function reusing the existing Trending middleware. The deployed build requires Supabase settings; unconfigured local development retains browser-only storage. Setup is documented in [deployment.md](./deployment.md).
+
+- `npm test`: exit 0; 69 tests across nine files. New coverage includes auth session races, sign-out, account switching/remounting, retry, conflicts, recovery, explicit import of old browser data, pending edits after reload, expected-account binding, and the Vercel HTTP adapter.
+- TypeScript/build, lint, and whitespace checks pass. Cloud builds reject missing/partial settings, secret keys, and non-HTTPS URLs. Vite reports a bundle-size advisory for the configured cloud build (about 689 kB minified / 212 kB gzipped).
+- The migration and SQL assertions passed in embedded PostgreSQL (PGlite), then on the hosted Supabase project. Checked anonymous denial, RLS isolation, valid saves, revision conflicts, expected-account binding, and malformed JSON. The migration is applied, and the hosted REST API rejects anonymous reads and saves with HTTP 401. Real GitHub sign-in still awaits provider setup.
+- Five deliberate mutations were caught: disconnected login handler, missing account remount, disabled RLS, missing revision check, and missing expected-account check. Mutations ran in temporary copies/databases; repository source was not changed.
+- Native Chrome showed the signed-out page with visible keyboard focus on the GitHub button. The signed-in interactions use mocked auth/storage in tests; real OAuth and hosted persistence await account configuration.
+
+Not verified: a live Vercel deployment, real GitHub OAuth round trip, mobile login rendering, or another browser. Workspaces load on opening/refreshing; real-time updates and durable feed caching are not included. Browser recovery caches remain after sign-out.

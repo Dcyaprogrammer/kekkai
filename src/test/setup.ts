@@ -1,5 +1,8 @@
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
+
+vi.stubEnv('VITE_SUPABASE_URL', '')
+vi.stubEnv('VITE_SUPABASE_PUBLISHABLE_KEY', '')
 
 declare global {
   var __UI_SDK_STRICT__: boolean | undefined

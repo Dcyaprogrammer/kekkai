@@ -25,16 +25,27 @@ function download(text: string, filename: string) {
 export function BackupDialog({
   workspace,
   recovery,
+  cloud = false,
+  storageKey = STORAGE_KEY,
   onRestore,
   onClose,
 }: {
   workspace: Workspace
   recovery: string | null
+  cloud?: boolean
+  storageKey?: string
   onRestore: (backup: Workspace) => boolean
   onClose: () => void
 }) {
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)
+  const [browserData, setBrowserData] = useState(() => {
+    try {
+      return cloud ? localStorage.getItem(STORAGE_KEY) : null
+    } catch {
+      return null
+    }
+  })
   return (
     <Dialog
       open
@@ -48,8 +59,9 @@ export function BackupDialog({
         </div>
         <DialogTitle>Your workspace, kept safe</DialogTitle>
         <DialogDescription>
-          Tasks, deadlines, and saved discoveries stay in this browser. Keep a
-          backup somewhere you trust.
+          {cloud
+            ? 'Your workspace saves to your account. Keep an extra copy, or bring a backup from another browser.'
+            : 'Tasks, deadlines, and saved discoveries stay in this browser. Keep a backup somewhere you trust.'}
         </DialogDescription>
         <DialogClose
           className="icon-button dialog-dismiss"
@@ -110,12 +122,40 @@ export function BackupDialog({
             }}
           />
         </div>
+        {browserData && (
+          <Button
+            className="button secondary small"
+            data-agent-confirm="Imports browser-only data into your signed-in account"
+            onClick={() => {
+              try {
+                if (!onRestore(parseWorkspace(browserData)))
+                  throw new Error(
+                    'Could not merge browser data. Your original copy is kept.',
+                  )
+                setBrowserData(null)
+                setFailed(false)
+                setMessage(
+                  'Browser data merged into your workspace. Your original copy is kept.',
+                )
+              } catch (error) {
+                setFailed(true)
+                setMessage(
+                  error instanceof Error
+                    ? error.message
+                    : 'Could not read browser data.',
+                )
+              }
+            }}
+          >
+            Import browser data
+          </Button>
+        )}
         <Button
           className="button ghost small"
           onClick={() => {
             try {
               const raw =
-                recovery ?? localStorage.getItem(`${STORAGE_KEY}.recovery`)
+                recovery ?? localStorage.getItem(`${storageKey}.recovery`)
               if (!raw) {
                 setFailed(false)
                 setMessage(
@@ -142,7 +182,9 @@ export function BackupDialog({
         )}
         <div className="backup-note">
           <HardDrive size={14} />
-          Local to this browser. No account or cloud sync.
+          {cloud
+            ? 'Restores merge into your signed-in account.'
+            : 'Local to this browser. No account or cloud sync.'}
         </div>
         <div className="dialog-actions">
           <span className="spacer" />
